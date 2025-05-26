@@ -1,0 +1,20 @@
+/* src/css/theme.css */
+/* Modo Claro (por defecto) */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333;
+  --card-bg: #f9f9f9;
+}
+
+/* Modo Oscuro */
+.dark-mode {
+  --bg-color: #1e1e1e;
+  --text-color: #e0e0e0;
+  --card-bg: #333;
+}
+
+/* Aplica los colores a elementos globales */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
