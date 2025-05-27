@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 3000; // Puerto donde correrá el servidor
 
 // 🔹 Configurar Socket.io para tiempo real
 const io = new Server(server, {
-    cors: { origin: process.env.FRONTEND_URL || "http://localhost:8080" }
+    cors: { origin: process.env.FRONTEND_URL || "http://10.4.27.11:5000" }
 });
 
 // Almacenar instancia de `io` en `app` para usarlo en los controladores
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
 
 // 🔹 Habilitar CORS con configuración ajustable
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:8080",
+    origin: process.env.FRONTEND_URL || "http://10.4.27.11:5000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -75,7 +75,7 @@ db.sequelize.authenticate()
     })
     .then(() => {
         server.listen(PORT, () => {
-            console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+            console.log(`🚀 Servidor corriendo en http://10.4.27.11:${PORT}`);
         });
     })
     .catch(error => {

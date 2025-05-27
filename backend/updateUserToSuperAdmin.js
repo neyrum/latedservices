@@ -2,7 +2,7 @@ const { User } = require('./models'); // Asegúrate de que la ruta sea correcta
 
 (async () => {
   try {
-    const email = 'root@prueba.com'; // Cambia esto al correo del usuario
+    const email = 'carlosrfdezm@gmail.com'; // Cambia esto al correo del usuario
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
@@ -10,7 +10,7 @@ const { User } = require('./models'); // Asegúrate de que la ruta sea correcta
       process.exit(1);
     }
 
-    user.role = 'client';
+    user.role = 'superadmin';
     await user.save();
 
     console.log(`El usuario ${user.name} ahora es superadmin.`);

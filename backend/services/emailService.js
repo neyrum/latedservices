@@ -3,12 +3,12 @@ const nodemailer = require("nodemailer");
 
 // Configurar el transporte de correo
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_USE_SSL, 
+    host: process.env.EMAIL_HOST ||'mail.unah.edu.cu',
+    port: process.env.EMAIL_PORT ||'465',
+    secure: process.env.EMAIL_USE_SSL || 'True',
     auth: {
-        user: process.env.EMAIL_HOST_USER,
-        pass: process.env.EMAIL_HOST_PASSWORD
+        user: process.env.EMAIL_HOST_USER || 'lated',
+        pass: process.env.EMAIL_HOST_PASSWORD || 'latedteam'
     },
     tls: {
        rejectUnauthorized: false

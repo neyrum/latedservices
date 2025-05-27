@@ -5,7 +5,7 @@ const getAdminSummary = async (req, res) => {
     const summary = {
       totalRequests: await Request.count(),
       activeServices: await Service.count({ where: { isActive: true } }),
-      pendingRequests: await Request.count({ where: { status: 'pending' } }),
+      //pendingRequests: await Request.count({ where: { status: 'pending' } }),
       totalUsers: await User.count(),
     };
 
