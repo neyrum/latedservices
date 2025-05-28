@@ -64,6 +64,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true, // Por defecto, el servicio está activo.
+      },
+      icon: { 
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: "fas fa-tools" // Icono por defecto
       }
     },
     {

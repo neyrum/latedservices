@@ -5,7 +5,7 @@ const getActiveServices = async (req, res) => {
     try {
         const activeServices = await Service.findAll({
             where: { isActive: true },
-            attributes: ['id', 'name', 'description', 'price', 'averageRating'],
+            attributes: ['id', 'name', 'description', 'price', 'averageRating', 'icon'],
         });
 
         console.log("Servicios activos encontrados:", activeServices);
@@ -25,7 +25,7 @@ const getActiveServices = async (req, res) => {
 const getServices = async (req, res) => {
     try {
         const services = await Service.findAll({
-            attributes: ['id', 'name', 'description', 'price', 'averageRating'],
+            attributes: ['id', 'name', 'description', 'price', 'averageRating', 'icon'],
         });
         res.status(200).json(services);
     } catch (error) {
@@ -39,7 +39,7 @@ const getServiceById = async (req, res) => {
     try {
         const { id } = req.params;
         const service = await Service.findByPk(id, {
-            attributes: ['id', 'name', 'description', 'price', 'averageRating'],
+            attributes: ['id', 'name', 'description', 'price', 'averageRating', 'icon' ],
         });
         if (!service) {
             return res.status(404).json({ message: 'Servicio no encontrado' });
@@ -59,7 +59,7 @@ const createService = async (req, res) => {
             return res.status(403).json({ message: 'Solo administradores pueden crear servicios' });
         }
 
-        const { name, description, price } = req.body;
+        const { name, description, price, icon } = req.body;
 
         // Validar datos obligatorios
         if (!name || !description) {
@@ -71,11 +71,16 @@ const createService = async (req, res) => {
         if (validatedPrice !== null && (!Number.isFinite(validatedPrice) || validatedPrice < 0)) {
             return res.status(400).json({ message: "El precio debe ser un número válido mayor o igual a 0." });
         }
+
+        // Asignar icono por defecto si el usuario no proporciona uno
+        const serviceIcon = icon || "fas fa-laptop";
+
         
         const newService = await Service.create({
             name,
             description,
             price: validatedPrice,
+            icon: serviceIcon,
             createdBy: req.user.id,
         });
 
@@ -95,7 +100,7 @@ const updateService = async (req, res) => {
         }
 
         const { id } = req.params;
-        const { name, description, price } = req.body;
+        const { name, description, price, icon  } = req.body;
 
         const service = await Service.findByPk(id);
         if (!service) {
@@ -112,7 +117,7 @@ const updateService = async (req, res) => {
             return res.status(400).json({ message: "El precio debe ser un número válido mayor o igual a 0." });
         }
 
-        await service.update({ name, description, price: validatedPrice });
+        await service.update({ name, description, price: validatedPrice, icon });
 
         res.status(200).json({ message: 'Servicio actualizado exitosamente', service });
     } catch (error) {

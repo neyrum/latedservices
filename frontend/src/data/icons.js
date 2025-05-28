@@ -1,0 +1,29 @@
+// src/data/icons.js
+export const availableIcons = [
+    { name: "Herramientas", class: "fas fa-tools" },
+    { name: "Marketing", class: "fas fa-bullhorn" },
+    { name: "Seguridad", class: "fas fa-shield-alt" },
+    { name: "Diseño", class: "fas fa-paint-brush" },
+    { name: "Educación", class: "fas fa-chalkboard-teacher" },
+    { name: "E-commerce", class: "fas fa-shopping-cart" },
+    { name: "Análisis", class: "fas fa-chart-line" },
+    { name: "Música", class: "fas fa-music" },
+    { name: "Deportes", class: "fas fa-futbol" },
+    { name: "Arte", class: "fas fa-palette" },
+    { name: "Tecnología", class: "fas fa-laptop" },
+    { name: "Salud", class: "fas fa-heartbeat" },
+    { name: "Finanzas", class: "fas fa-dollar-sign" },
+    { name: "Gastronomía", class: "fas fa-utensils" },
+    { name: "Fotografía", class: "fas fa-camera" },
+    { name: "Transporte", class: "fas fa-car" },
+    { name: "Viajes", class: "fas fa-plane" },
+    { name: "Legales", class: "fas fa-balance-scale" },
+    { name: "Consultoría", class: "fas fa-comments" },
+    { name: "Hosting", class: "fas fa-server" },
+    { name: "Programación", class: "fas fa-code" },
+    { name: "Comunicación", class: "fas fa-envelope" },
+    { name: "Relajación", class: "fas fa-spa" },
+    { name: "Energía", class: "fas fa-bolt" },
+    { name: "Cursos", class: "fas fa-book" }
+  ];
+  
