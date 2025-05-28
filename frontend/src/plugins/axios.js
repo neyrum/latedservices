@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'http://10.4.27.11:3000/api', // URL base del backend
+  baseURL: process.env.VUE_APP_API_URL, // URL base del backend
   headers: {
     'Content-Type': 'application/json', // Tipo de contenido predeterminado
   },

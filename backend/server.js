@@ -20,11 +20,11 @@ const notificationRoutes = require("./routes/notification.routes");
 // 🔹 Iniciar el servidor
 const app = express();
 const server = http.createServer(app); // Crear servidor HTTP para trabajar
-const PORT = process.env.PORT || 3000; // Puerto donde correrá el servidor
+const PORT = process.env.PORT; // Puerto donde correrá el servidor
 
 // 🔹 Configurar Socket.io para tiempo real
 const io = new Server(server, {
-    cors: { origin: process.env.FRONTEND_URL || "http://10.4.27.11:5000" }
+    cors: { origin: process.env.FRONTEND_URL }
 });
 
 // Almacenar instancia de `io` en `app` para usarlo en los controladores
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
 
 // 🔹 Habilitar CORS con configuración ajustable
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://10.4.27.11:5000",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -74,8 +74,8 @@ db.sequelize.authenticate()
         return db.sequelize.sync();
     })
     .then(() => {
-        server.listen(PORT, () => {
-            console.log(`🚀 Servidor corriendo en http://10.4.27.11:${PORT}`);
+        server.listen(process.env.PORT, process.env.SERVER_HOST, () => {
+            console.log(`🚀 Servidor corriendo en http://${process.env.SERVER_HOST}:${process.env.PORT}`);
         });
     })
     .catch(error => {

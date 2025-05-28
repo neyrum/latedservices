@@ -54,7 +54,7 @@ export default {
     await this.fetchNotifications();
     
     // Inicializar conexión con Socket.io
-    this.socket = io("http://10.4.27.11:3000");
+    this.socket = io (process.env.VUE_APP_SOCKET_URL);
 
     // Escuchar nuevas notificaciones en tiempo real
     this.socket.on(`notification-${this.getUserId()}`, (newNotification) => {

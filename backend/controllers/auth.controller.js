@@ -151,18 +151,28 @@ const requestPasswordReset = async (req, res) => {
 
     // Configurar el transporte de correo
     const transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587, // Puerto para TLS
-      secure: false, // Usa TLS
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      secure: process.env.EMAIL_USE_SSL === "true",
       auth: {
-        user:'jorge.will3@ethereal.email', // Configura tu correo
-        pass: 'S7TXjCbHS5Bj55bwTZ' // Configura tu contraseña
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
+    // Verificar conexión SMTP al iniciar la aplicación
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error("❌ Error en la configuración SMTP:", error);
+      } else {
+        console.log("✅ Servidor SMTP listo para enviar correos.");
+      }
+    });
+
     // Enviar el correo con el enlace de restablecimiento
-    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     const mailOptions = {
+      from: `"Lated Services" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: 'Restablecimiento de contraseña',
       text: `Haz clic en el siguiente enlace para restablecer tu contraseña: ${resetUrl}`,

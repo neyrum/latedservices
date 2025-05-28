@@ -1,0 +1,38 @@
+# Node.js backend
+backend/node_modules/
+backend/package-lock.json
+backend/.env
+backend/logs/
+backend/*.log
+backend/tmp/
+backend/dist/
+backend/build/
+backend/.cache/
+backend/coverage/
+backend/.vscode/
+backend/.idea/
+backend/.DS_Store
+backend/Thumbs.db
+backend/*.bak
+
+# Vue.js frontend
+frontend/node_modules/
+frontend/package-lock.json
+frontend/.env
+frontend/dist/
+frontend/.cache/
+frontend/coverage/
+frontend/.vscode/
+frontend/.idea/
+frontend/.DS_Store
+frontend/Thumbs.db
+frontend/*.bak
+
+# Ignorar archivos de configuración de sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar imágenes y archivos generados
+frontend/public/assets/img/
+frontend/src/assets/img/
+

@@ -39,6 +39,7 @@ AOS.init({
 import Notification from "@/components/Notification.vue";
 import UserNotifications from "@/components/UserNotifications.vue";
 
+
 // 🔹 Inicializar aplicación
 store.dispatch("auth/validateToken").finally(() => {
   console.log("Bootstrap Loaded:", typeof bootstrap);

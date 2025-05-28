@@ -4,7 +4,7 @@ const { Sequelize } = require("sequelize");
 // Configurar la conexión con variables de entorno
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
     host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT || "postgres", // Cambia según tu base de datos
+    dialect: process.env.DB_DIALECT, // Cambia según tu base de datos
     logging: false, // Desactiva logs para producción
     pool: {
         max: 10,
