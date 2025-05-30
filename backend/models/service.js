@@ -69,6 +69,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: "fas fa-tools" // Icono por defecto
+      },
+      featured: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false  // Por defecto, no está destacado.
+      },
+      mediaUrl: {
+        type: DataTypes.STRING,
+        allowNull: true  // Permite valores nulos si aún no se ha asignado media.
       }
     },
     {

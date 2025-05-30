@@ -1,4 +1,26 @@
 const { Service, Rating } = require('../models');
+const path = require("path");
+const fs = require("fs");
+const { Op } = require('sequelize');
+
+// Obtener solo los servicios destacados con imágenes
+const getPortfolioServices = async (req, res) => {
+  try {
+    const portfolioItems = await Service.findAll({
+      where: { featured: true, mediaUrl: { [Op.ne]: null } },
+      attributes: ["id", "name", "description", "mediaUrl", "featured"]
+    });
+
+    if (portfolioItems.length === 0) {
+      return res.status(404).json({ message: "No se encontraron servicios para el portafolio." });
+    }
+
+    res.status(200).json(portfolioItems);
+  } catch (error) {
+    console.error("Error al obtener el portafolio:", error);
+    res.status(500).json({ message: "Error interno del servidor al obtener el portafolio." });
+  }
+};
 
 // Obtener solo los servicios activos
 const getActiveServices = async (req, res) => {
@@ -59,7 +81,8 @@ const createService = async (req, res) => {
             return res.status(403).json({ message: 'Solo administradores pueden crear servicios' });
         }
 
-        const { name, description, price, icon } = req.body;
+        const { name, description, price, icon, featured } = req.body;
+        const mediaUrl = req.file ? `/assets/img/portfolio/${req.file.filename}` : null;
 
         // Validar datos obligatorios
         if (!name || !description) {
@@ -75,12 +98,14 @@ const createService = async (req, res) => {
         // Asignar icono por defecto si el usuario no proporciona uno
         const serviceIcon = icon || "fas fa-laptop";
 
-        
+        // Crear el servicio
         const newService = await Service.create({
             name,
             description,
             price: validatedPrice,
             icon: serviceIcon,
+            featured: featured === "true",  // Asegurar que featured sea booleano
+            mediaUrl,
             createdBy: req.user.id,
         });
 
@@ -140,6 +165,12 @@ const deleteService = async (req, res) => {
             return res.status(404).json({ message: 'Servicio no encontrado' });
         }
 
+        // 🔹 Eliminar la imagen física si existe
+    if (service.mediaUrl) {
+      const imagePath = path.join(__dirname, "..", "public", service.mediaUrl);
+      fs.unlinkSync(imagePath);
+    }
+
         await service.destroy();
         res.status(200).json({ message: 'Servicio eliminado correctamente' });
     } catch (error) {
@@ -149,6 +180,7 @@ const deleteService = async (req, res) => {
 };
 
 module.exports = {
+    getPortfolioServices,
     getServices,
     getServiceById,
     getActiveServices,

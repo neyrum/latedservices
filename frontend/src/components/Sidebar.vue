@@ -26,6 +26,19 @@
           </div>
         </div>
 
+        <!-- Gestión del Portafolio -->
+        <div class="menu-dropdown">
+        <button @click="togglePortfolio">
+          <i class="fas fa-briefcase"></i> Gestión de Portafolio
+          <i class="fas" :class="{ 'fa-chevron-down': !showPortfolio, 'fa-chevron-up': showPortfolio }"></i>
+        </button>
+        <div v-show="showPortfolio" class="dropdown-content">
+           <button class="dropdown-item" @click="changeSection('portfolioManagement')">
+            Ver / Agregar al Portafolio
+           </button>
+          </div>
+        </div>
+
         <!-- Gestión de Usuarios -->
         <div class="menu-dropdown">
           <button @click="toggleUsers">
@@ -74,6 +87,7 @@ export default {
       showServices: false,
       showUsers: false,
       showRequests: false,
+      showPortfolio: false,
     };
   },
   computed: {
@@ -100,6 +114,9 @@ export default {
      toggleRequests() {
     this.showRequests = !this.showRequests;
     },
+    togglePortfolio() {
+    this.showPortfolio = !this.showPortfolio;
+  },
     changeSection(section) {
       this.$emit("section-change", section);
     },

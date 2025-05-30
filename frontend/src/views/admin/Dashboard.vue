@@ -13,6 +13,12 @@
           <h2 class="dashboard-title">Gestión de Servicios</h2>
           <ManageServices mode="manage" />
         </template>
+
+        <!-- Sección de Gestión de Portafolio -->
+        <template v-else-if="activeSection === 'portfolioManagement'">
+          <h2 class="dashboard-title">Gestión de Portafolio</h2>
+          <ManagePortfolio />
+        </template>
         
         <!-- Sección de Gestión de Usuarios -->
         <template v-else-if="activeSection === 'usersManagement'">
@@ -40,6 +46,7 @@
 import Navbar from "@/components/Navbar.vue";
 import Sidebar from "@/components/Sidebar.vue";
 import ManageServices from "@/views/admin/ManageServices.vue";
+import ManagePortfolio from "@/views/admin/ManagePortfolio.vue";
 import DashboardHome from "@/views/admin/DashboardHome.vue";
 import UsersManagement from "@/views/admin/UsersManagement.vue";
 import AdminRequests from "@/views/admin/AdminRequests.vue";
@@ -51,6 +58,7 @@ export default {
     Navbar,
     Sidebar,
     ManageServices,
+    ManagePortfolio,
     DashboardHome,
     UsersManagement,
     AdminRequests,
