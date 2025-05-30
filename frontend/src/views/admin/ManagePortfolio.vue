@@ -98,7 +98,9 @@
       </div>
       <div v-else class="service-grid">
         <div v-for="item in portfolioItems" :key="item.id" class="service-card">
-          <template v-if="!item.mediaUrl || item.mediaUrl === defaultImageUrl">
+          
+            <template v-if="!item.mediaUrl || item.mediaUrl.includes('default-placeholder.png')">
+
             <img :src="defaultImageUrl" alt="Imagen por defecto" class="service-image" />
           </template>
           <template v-else-if="item.mediaUrl.includes('.mp4')">
@@ -150,6 +152,7 @@ export default {
     };
   },
   async created() {
+    console.log("Default Image URL en Vue:", this.defaultImageUrl);
     try {
       const user = await axios.get("/users/me");
       this.isAdmin = user.data.role === "admin" || user.data.role === "superadmin";
@@ -434,4 +437,5 @@ export default {
 .edit-icon:hover {
   transform: scale(1.1);
 }
+
 </style>

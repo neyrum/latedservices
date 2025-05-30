@@ -3,7 +3,10 @@ const path = require("path");
 const { Portfolio } = require("../models");
 
 const baseUrl = process.env.APP_URL; // URL base para servir archivos
-const defaultImageUrl = `${baseUrl}/assets/img/default-placeholder.png`; // Imagen por defecto
+
+// Imagen por defecto
+const defaultImageUrl = `${baseUrl}/assets/img/portfolio/default-placeholder.png`;
+
 
 // 🔹 Obtener todos los proyectos del portafolio
 const getPortfolioProjects = async (req, res) => {
