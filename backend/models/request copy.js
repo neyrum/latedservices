@@ -43,8 +43,8 @@ module.exports = (sequelize, DataTypes) => {
           msg: 'La dirección no puede estar vacía'
         },
         isValidAddress(value) {
-          if (!value.street || !value.city ) {
-            throw new Error('La dirección debe incluir calle, ciudad ');
+          if (!value.street || !value.city || !value.zip) {
+            throw new Error('La dirección debe incluir calle, ciudad y código postal');
           }
         }
       }

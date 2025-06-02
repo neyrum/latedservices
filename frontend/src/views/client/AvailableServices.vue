@@ -131,26 +131,26 @@
                 <span v-if="errors.preferredDate" class="text-danger">{{ errors.preferredDate }}</span>
                 </div>
 
-                <!-- Campo para Calle -->
+                <!-- Campo para Facultad/Area o Identidad Laboral -->
               <div class="form-group">
-              <label for="street">Calle</label>
-              <input type="text"id="street" v-model="form.street"class="form-control" placeholder="Ingresa la calle" required />
+              <label for="street">Facultad/Area o Identidad Laboral</label>
+              <input type="text"id="street" v-model="form.street"class="form-control" placeholder="Ingresa la facultad, area o identidad laboral" required />
               <span v-if="errors.street" class="text-danger">{{ errors.street }}</span>
               </div>
 
-              <!-- Campo para Ciudad -->
+              <!-- Campo para Departamneto -->
              <div class="form-group mt-3">
-             <label for="city">Ciudad</label>
-             <input type="text" id="city" v-model="form.city" class="form-control" placeholder="Ingresa la ciudad" required />
+             <label for="city">Departamneto</label>
+             <input type="text" id="city" v-model="form.city" class="form-control" placeholder="Ingresa el departamento al q pertenece" required />
              <span v-if="errors.city" class="text-danger">{{ errors.city }}</span>
              </div>
 
-              <!-- Campo para Código Postal -->
+              <!-- Campo para Código Postal 
               <div class="form-group mt-3">
               <label for="zip">Código Postal</label>
               <input type="text" id="zip" v-model="form.zip" class="form-control" placeholder="Ingresa el código postal" required />
               <span v-if="errors.zip" class="text-danger">{{ errors.zip }}</span>
-              </div>
+              </div> -->
 
                 <button
                   type="submit"
@@ -247,8 +247,8 @@ export default {
     
       // Validar la descripción (mínimo 10 a máximo 500 caracteres)
       const description = this.form.description ? this.form.description.trim() : "";
-      if (!description || description.length < 250) {
-      this.errors.description = "La descripción debe tener al menos 250 caracteres.";
+      if (!description || description.length < 50) {
+      this.errors.description = "La descripción debe tener al menos 50 caracteres.";
       } else if (description.length > 500) {
       this.errors.description = "La descripción debe tener como máximo 500 caracteres.";
       }
@@ -287,9 +287,9 @@ export default {
       if (!this.form.city || !this.form.city.trim()) {
         this.errors.city = "La ciudad es obligatoria.";
       }
-      if (!this.form.zip || !this.form.zip.trim()) {
-        this.errors.zip = "El código postal es obligatorio.";
-      }
+     // if (!this.form.zip || !this.form.zip.trim()) {
+     //   this.errors.zip = "El código postal es obligatorio.";
+     // } 
 
       // Si no hay propiedades en el objeto errors, retorna true
       return Object.keys(this.errors).length === 0;
@@ -318,7 +318,7 @@ export default {
       const addressObj = {
        street: this.form.street.trim(),
        city: this.form.city.trim(),
-       zip: this.form.zip.trim(),
+      // zip: this.form.zip.trim(),
   };
 
       try { 
@@ -361,7 +361,7 @@ export default {
         this.form.preferredDate = "";
         this.form.street = "";
         this.form.city = "";
-        this.form.zip = "";
+        //this.form.zip = "";
 
         const requestFormModal = bootstrap.Modal.getInstance(document.getElementById("requestFormModal"));
         requestFormModal.hide();

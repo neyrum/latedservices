@@ -54,7 +54,7 @@
               <router-link class="back-icon" :to="'/dashboard'">
                 <i class="fas fa-arrow-left"></i>
               </router-link>
-              <span class="header-title">Datos del Cliente y Dirección</span>
+              <span class="header-title">Datos del Cliente</span>
             </div>
             <div class="card-body p-2">
               <div class="mb-2">
@@ -71,12 +71,12 @@
               </div>
               <hr class="my-1">
               <div>
-                <h6 class="mb-1">Dirección</h6>
+                <h6 class="mb-1">Datos Laborales</h6>
                 <p class="mb-1" v-if="request.address">
-                  <strong>Calle:</strong> {{ request.address.street }}
+                  <strong>Facultad/Area o Identidad Laboral:</strong> {{ request.address.street }}
                 </p>
                 <p class="mb-0" v-if="request.address">
-                  <strong>Ciudad:</strong> {{ request.address.city }}
+                  <strong>Departamneto:</strong> {{ request.address.city }}
                 </p>
               </div>
             </div>
