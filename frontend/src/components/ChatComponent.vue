@@ -1,25 +1,35 @@
 <template>
   <div class="chat-container">
+    <!-- Caja de mensajes -->
     <div class="chat-box" ref="chatBox">
       <transition-group name="message" tag="div">
+        <!-- Se recorren solo los mensajes activos (sin deleted_at) -->
         <div
-          v-for="msg in messages"
+          v-for="msg in filteredMessages"
           :key="msg.id"
           class="chat-message"
           :class="{ 'own-message': isOwnMessage(msg) }"
           @click="updateMessageStatus(msg)"
         >
+          <!-- Encabezado con el nombre en la parte superior y el botón de eliminar (cruz) -->
           <div class="message-info">
-            <strong>{{ labelForMessage(msg) }}:</strong>
+            <strong class="user-name">{{ labelForMessage(msg) }}</strong>
+            <!-- La cruz se mostrará solo cuando pases el ratón sobre el contenedor .message-info -->
+            <button
+              v-if="isOwnMessage(msg)"
+              @click.stop="deleteMessage(msg.id)"
+              class="delete-btn"
+            >
+              ✖
+            </button>
           </div>
-          <!-- Se muestra el mensaje con formato enriquecido -->
           <div class="message-content" v-html="formatMessage(msg.content)"></div>
         </div>
       </transition-group>
     </div>
 
+    <!-- Caja de entrada de mensajes -->
     <div class="chat-input-container">
-      <!-- Este contenedor se posiciona de forma relativa para ubicar el picker de emojis -->
       <div class="input-wrapper">
         <button class="emoji-button" @click="toggleEmojiPicker">😀</button>
         <input
@@ -27,17 +37,23 @@
           placeholder="Escribe un mensaje..."
           @keyup.enter="sendMessage"
         />
-        <!-- Botón enviar con ícono similar al de Telegram -->
         <button class="send-icon-button" @click="sendMessage">
           <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
           </svg>
         </button>
       </div>
-      <!-- Contenedor del selector de emojis, posicionado de manera absoluta -->
+      <!-- Selector de emojis -->
       <div v-if="showEmojiPicker" class="emoji-picker-container">
         <emoji-picker @emoji-click="addEmoji" class="emoji-picker" />
       </div>
+    </div>
+
+    <!-- Botón de hard delete visible solo para administradores -->
+    <div v-if="role === 'admin' || role === 'superadmin'" class="hard-delete-container">
+      <button @click="deleteAllMessages">
+        🗑️ Eliminar todos los mensajes eliminados
+      </button>
     </div>
   </div>
 </template>
@@ -46,7 +62,7 @@
 import socket from "@/plugins/socket";
 import axios from "@/plugins/axios";
 import { toRaw } from "vue";
-import 'emoji-picker-element'; // Importa el componente de selector de emojis
+import 'emoji-picker-element';
 
 export default {
   name: "ChatComponent",
@@ -60,107 +76,68 @@ export default {
       messages: [],
       newMessage: "",
       showEmojiPicker: false,
-      notificationVisible: false,
-      notificationText: "",
-      currentPage: 1,
-      totalPages: 1,
       loadingMessages: false,
-      emojiMap: {
-        smile: "😃",
-        heart: "❤️",
-        thumbs_up: "👍",
-        fire: "🔥",
-        party: "🎉"
-      }
+      currentPage: 1,
+      totalPages: 1
     };
   },
   computed: {
+    filteredMessages() {
+      return this.messages.filter(msg => !msg.deleted_at);
+    },
     userName() {
-      return (
-        (this.$store.state.auth.userData &&
-          this.$store.state.auth.userData.name) ||
-        "Usuario"
-      );
+      return (this.$store.state.auth.userData && this.$store.state.auth.userData.name) || "Usuario";
     }
   },
   mounted() {
     if (!this.userId) {
-      console.warn("User ID no definido. Se omite la carga inicial de mensajes.");
+      console.warn("User ID no definido, no se cargan los mensajes.");
       return;
     }
     this.loadMessages();
 
-    // Escuchar nuevos mensajes vía Socket.io
-    socket.on("newMessage", (message) => {
-      if (Array.isArray(this.messages)) {
-        this.messages.push(message);
-        this.scrollToBottom();
-      }
+    socket.on("newMessage", message => {
+      this.messages.push(message);
+      this.scrollToBottom();
     });
 
-    // Escuchar actualizaciones de estado de mensajes
-    socket.on("messageUpdated", (data) => {
-      const index = this.messages.findIndex((m) => m.id === data.id);
+    socket.on("messageUpdated", data => {
+      const index = this.messages.findIndex(m => m.id === data.id);
       if (index !== -1) {
         this.$set(this.messages, index, { ...this.messages[index], status: data.status });
       }
     });
-
-    // Escuchar notificaciones en tiempo real
-    socket.on(`notification-${this.userId}`, (notification) => {
-      this.showNotification(notification.title, notification.body);
-    });
   },
   methods: {
-    // Alterna el estado de visibilidad del selector de emojis
     toggleEmojiPicker() {
       this.showEmojiPicker = !this.showEmojiPicker;
     },
-    // Agrega el emoji seleccionado al mensaje y oculta el selector
     addEmoji(event) {
       this.newMessage += event.detail.unicode;
       this.showEmojiPicker = false;
     },
-    // Solicita permiso y muestra una notificación en el navegador
-    showNotification(title, body) {
-      if ("Notification" in window) {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            new Notification(title, { body });
-          }
-        });
-      }
-    },
-    // Aplica formato: **texto** a negritas, *texto* a cursivas y :emoji: se sustituye usando emojiMap
     formatMessage(content) {
       if (!content || typeof content !== "string") return "";
       return content
         .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
-        .replace(/\*(.*?)\*/g, "<i>$1</i>")
-        .replace(/:(\w+):/g, (match, emoji) => this.emojiMap[emoji] || match);
+        .replace(/\*(.*?)\*/g, "<i>$1</i>");
     },
-    // Carga mensajes desde la API con paginación
     loadMessages() {
       if (this.loadingMessages) return;
       this.loadingMessages = true;
       axios
-        .get(
-          `/messages?senderId=${this.userId}&receiverId=${this.receiverId}&page=${this.currentPage}&limit=20`
-        )
-        .then((response) => {
-          this.messages = Array.isArray(response.data.messages)
-            ? response.data.messages
-            : [];
+        .get(`/messages?senderId=${this.userId}&receiverId=${this.receiverId}&page=${this.currentPage}&limit=20`)
+        .then(response => {
+          this.messages = response.data.messages || [];
           this.totalPages = response.data.totalPages || 1;
           this.loadingMessages = false;
           this.$nextTick(() => this.scrollToBottom());
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Error al cargar mensajes:", error);
           this.loadingMessages = false;
         });
     },
-    // Envía el mensaje actual
     sendMessage() {
       if (!this.newMessage.trim()) return;
       const message = {
@@ -176,45 +153,51 @@ export default {
           this.newMessage = "";
           this.scrollToBottom();
         })
-        .catch((error) => console.error("Error al enviar mensaje:", error));
+        .catch(error => console.error("Error al enviar mensaje:", error));
     },
-    // Actualiza el estado del mensaje a "read" si es necesario
     updateMessageStatus(msg) {
       if (msg.status !== "read") {
         socket.emit("updateMessageStatus", { id: msg.id, status: "read" });
       }
     },
-    // Comprueba si el mensaje pertenece al usuario actual
+    deleteMessage(id) {
+      axios
+        .delete(`/messages/${id}`)
+        .then(() => {
+          this.messages = this.messages.map(msg =>
+            msg.id === id ? { ...msg, deleted_at: new Date() } : msg
+          );
+        })
+        .catch(error => console.error("Error al eliminar mensaje:", error));
+    },
+    deleteAllMessages() {
+      axios
+        .delete("/messages/all")
+        .then(() => {
+          this.messages = this.messages.filter(msg => !msg.deleted_at);
+        })
+        .catch(error => console.error("Error al eliminar todos los mensajes:", error));
+    },
     isOwnMessage(msg) {
       return msg.senderId === this.userId;
     },
-    // Devuelve la etiqueta basada en el rol y origen del mensaje
     labelForMessage(msg) {
       const rawMsg = toRaw(msg);
       if (this.role === "admin" || this.role === "superadmin") {
         return this.isOwnMessage(rawMsg)
           ? "Administrador"
           : "Cliente " + (rawMsg.senderName?.trim() || "Desconocido");
-      } else {
-        return this.isOwnMessage(rawMsg)
-          ? "Cliente " + this.userName
-          : "Administrador";
       }
+      return this.isOwnMessage(rawMsg)
+        ? "Cliente " + this.userName
+        : "Administrador";
     },
-    // Realiza scroll hasta el último mensaje
     scrollToBottom() {
       const chatBox = this.$refs.chatBox;
       if (chatBox) {
         this.$nextTick(() => {
           chatBox.scrollTop = chatBox.scrollHeight;
         });
-      }
-    },
-    // Carga la siguiente página de mensajes, si hay más
-    loadNextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-        this.loadMessages();
       }
     }
   },
@@ -223,35 +206,35 @@ export default {
       if (newVal) this.loadMessages();
     },
     messages() {
-      this.$nextTick(() => {
-        this.scrollToBottom();
-      });
+      this.$nextTick(() => this.scrollToBottom());
     }
   }
 };
 </script>
 
 <style scoped>
+/* Estilos modernos con acento azul oscuro (#345996) */
+
+/* Contenedor principal del chat */
 .chat-container {
-  display: flex;
-  flex-direction: column;
-  width: 360px;
-  max-width: 100%;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto', sans-serif;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   margin: 20px auto;
+  max-width: 400px;
 }
 
+/* Caja de mensajes */
 .chat-box {
   height: 400px;
-  padding: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f9f9f9, #ffffff);
   overflow-y: auto;
-  background-color: #f5f5f5;
 }
 
+/* Animaciones para los mensajes */
 .message-enter-active,
 .message-leave-active {
   transition: all 0.3s ease;
@@ -262,14 +245,18 @@ export default {
   transform: translateY(10px);
 }
 
+/* Estilo de cada mensaje */
 .chat-message {
-  margin-bottom: 10px;
-  max-width: 70%;
-  padding: 10px 15px;
+  margin-bottom: 12px;
+  max-width: 75%;
+  padding: 12px 16px;
   border-radius: 20px;
   word-wrap: break-word;
-  cursor: pointer;
+  background-color: #e9efff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
+
+/* Mensajes propios con alineación a la derecha */
 .own-message {
   background-color: #cce4ff;
   margin-left: auto;
@@ -279,59 +266,85 @@ export default {
   background-color: #ffffff;
   margin-right: auto;
   text-align: left;
-  border: 1px solid #345896;
+  border: 1px solid #d7e2f0;
 }
 
+/* Encabezado del mensaje (nombre y botón de eliminar) */
 .message-info {
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px; /* Aumentar ligeramente el tamaño de la cabecera */
+  color: #345996; /* Color azul oscuro */
+  margin-bottom: 4px;
 }
-.message-content {
+.user-name {
+  font-weight: bold;
+  font-size: 16px; /* Mayor tamaño para el nombre */
+}
+
+/* Botón de eliminación: la cruz se muestra solo al hacer hover sobre el contenedor de la cabecera */
+.message-info .delete-btn {
+  display: none;
+  background: transparent;
+  border: none;
   font-size: 16px;
+  cursor: pointer;
+  color: #345996;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.message-info:hover .delete-btn {
+  display: inline;
+}
+.delete-btn:hover {
+  opacity: 1;
+}
+
+/* Contenido del mensaje */
+.message-content {
+  font-size: 18px; /* Aumentamos el tamaño del texto en los mensajes */
   color: #333;
 }
 
-/* Contenedor del input */
+/* Caja de entrada de mensaje */
 .chat-input-container {
-  padding: 10px 15px;
-  border-top: 1px solid #ddd;
-  background-color: #fff;
-  position: relative; /* Para posicionar el picker de emojis de forma absoluta */
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  background-color: #fafafa;
+  position: relative;
 }
-
-/* Input y botones integrados */
 .input-wrapper {
   display: flex;
   align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  padding: 8px 12px;
   background-color: #fff;
 }
 .input-wrapper input {
-  flex: 1;
-  padding: 5px 10px;
-  font-size: 16px;
+  flex-grow: 1;
   border: none;
   outline: none;
+  font-size: 18px; /* También se aumenta el tamaño de letra en el input */
+  padding: 8px;
 }
 .emoji-button {
   background: transparent;
   border: none;
-  font-size: 20px;
   cursor: pointer;
-  margin-right: 5px;
+  font-size: 22px;
+  margin-right: 8px;
 }
 .send-icon-button {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 5px;
+  padding: 4px;
 }
 .send-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   fill: #345896;
   transition: fill 0.3s;
 }
@@ -339,35 +352,46 @@ export default {
   fill: #2a447b;
 }
 
-/* Contenedor del emoji-picker (popup elegante) */
+/* Contenedor del emoji-picker */
 .emoji-picker-container {
   position: absolute;
-  bottom: calc(100% + 5px); /* Ubica el picker encima del input */
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 95%; /* Ancho relativo para dar un toque elegante */
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
   max-height: 300px;
   background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   z-index: 100;
 }
-
-/* Personalización adicional del emoji-picker interno */
 .emoji-picker {
-  --emoji-picker-background-color: #fff;
-  --emoji-picker-body-background-color: #fff;
-  --emoji-picker-border-color: #ccc;
-  --emoji-picker-category-button-background-color: #fff;
-  --emoji-picker-text-color: #333;
   --num-columns: 6;
   --emoji-size: 2rem;
   --background: rgb(255, 255, 255);
   width: 100%;
   height: auto;
   border: none;
+}
+
+/* Botón de hard delete (solo admin) */
+.hard-delete-container {
+  margin: 15px;
+  text-align: center;
+}
+.hard-delete-container button {
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+.hard-delete-container button:hover {
+  background: #e60000;
 }
 </style>
