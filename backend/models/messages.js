@@ -35,11 +35,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM("sent", "received", "read"),
       defaultValue: "sent",
     },
+    deleted_at: {  // Se mantiene "deleted_at"
+      type: DataTypes.DATE,
+      allowNull: true,
+    }
   }, {
     timestamps: true, // Para controlar cuándo se envía y lee un mensaje
+    paranoid: true,   // Activa soft delete en Sequelize
+    deletedAt: 'deleted_at'  // Configura el nombre de la columna para soft deletes
   });
 
-  // 🔹 Asociaciones con otros modelos
   Message.associate = (models) => {
     Message.belongsTo(models.User, { foreignKey: "senderId", as: "sender" });
     Message.belongsTo(models.User, { foreignKey: "receiverId", as: "receiver" });

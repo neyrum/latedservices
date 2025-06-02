@@ -46,7 +46,7 @@
 import socket from "@/plugins/socket";
 import axios from "@/plugins/axios";
 import { toRaw } from "vue";
-import "emoji-picker-element"; // Importa el componente de selector de emojis
+import 'emoji-picker-element'; // Importa el componente de selector de emojis
 
 export default {
   name: "ChatComponent",
@@ -363,6 +363,9 @@ export default {
   --emoji-picker-border-color: #ccc;
   --emoji-picker-category-button-background-color: #fff;
   --emoji-picker-text-color: #333;
+  --num-columns: 6;
+  --emoji-size: 2rem;
+  --background: rgb(255, 255, 255);
   width: 100%;
   height: auto;
   border: none;
