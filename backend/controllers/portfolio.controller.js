@@ -12,7 +12,7 @@ const defaultImageUrl = `${baseUrl}/assets/img/portfolio/default-placeholder.png
 const getPortfolioProjects = async (req, res) => {
   try {
     const projects = await Portfolio.findAll({
-      attributes: ["id", "name", "description", "category", "client", "mediaUrl"]
+      attributes: ["id", "name", "description", "category", "client", "mediaUrl", "url"]
     });
 
     res.status(200).json(projects);
@@ -24,12 +24,13 @@ const getPortfolioProjects = async (req, res) => {
 
 // 🔹 Crear un nuevo proyecto
 const createPortfolioProject = async (req, res) => {
+  console.log("Datos recibidos:", req.body);
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({ message: "❌ Datos incompletos. Verifica tu solicitud." });
     }
 
-    const { name, description, category, client } = req.body;
+    const { name, description, category, client, url } = req.body;
     if (!name || name.trim() === "") {
       return res.status(400).json({ message: "❌ El nombre es obligatorio." });
     }
@@ -42,6 +43,9 @@ const createPortfolioProject = async (req, res) => {
     if (!client || client.trim() === "") {
       return res.status(400).json({ message: "❌ El nombre del cliente es obligatorio." });
     }
+    
+    // Solo validar `url` si se proporciona
+    const validatedUrl = url && /^https?:\/\/.+$/.test(url) ? url : null;
 
     let mediaUrl = defaultImageUrl; // Usa imagen por defecto si no hay archivo
     if (req.file) {
@@ -53,7 +57,7 @@ const createPortfolioProject = async (req, res) => {
         : `${baseUrl}/assets/videos/portfolio/${req.file.filename}`;
     }
 
-    const newProject = await Portfolio.create({ name, description, category, client, mediaUrl });
+    const newProject = await Portfolio.create({ name, description, category, client, mediaUrl, url });
 
     return res.status(201).json({ message: "✅ Proyecto creado exitosamente.", project: newProject });
   } catch (error) {
@@ -66,7 +70,7 @@ const createPortfolioProject = async (req, res) => {
 const updatePortfolioProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, category, client } = req.body;
+    const { name, description, category, client, url } = req.body;
 
     const project = await Portfolio.findByPk(id);
     if (!project) {
@@ -86,6 +90,9 @@ const updatePortfolioProject = async (req, res) => {
       return res.status(400).json({ message: "❌ El nombre del cliente es obligatorio." });
     }
 
+    // Solo actualizar `url` si se proporciona
+    const updatedUrl = url !== undefined ? (url && /^https?:\/\/.+$/.test(url) ? url : null) : project.url;
+
     let mediaUrl = project.mediaUrl;
     if (req.file) {
       if (!req.file.mimetype.startsWith("image") && !req.file.mimetype.startsWith("video")) {
@@ -96,7 +103,7 @@ const updatePortfolioProject = async (req, res) => {
         : `${baseUrl}/assets/videos/portfolio/${req.file.filename}`;
     }
 
-    await project.update({ name, description, category, client, mediaUrl });
+    await project.update({ name, description, category, client, mediaUrl, url });
 
     return res.status(200).json({ message: "✅ Proyecto actualizado correctamente.", project });
   } catch (error) {

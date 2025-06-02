@@ -32,6 +32,10 @@
         <span>Cliente: {{ project.client }}</span> | 
         <span>Categoría: {{ project.category }}</span>
       </div>
+
+      <p v-if="project.url">
+      <a :href="project.url" target="_blank" class="project-link">Ver Proyecto</a>
+     </p>
     </div>
   </div>
 </template>

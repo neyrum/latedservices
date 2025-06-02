@@ -37,9 +37,15 @@
                     <p><strong>Categoría:</strong> {{ project.category }}</p>
                   </div>
 
+                  <p v-if="project.url">
+                    <a :href="project.url" target="_blank" class="btn btn-primary">Ir al Proyecto</a>
+                  </p>
+                
+
                   <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
                     <i class="fas fa-xmark me-1"></i> Cerrar Proyecto
                   </button>
+                   
                 </div>
               </div>
             </div>
@@ -98,5 +104,15 @@ export default {
   margin-top: 15px;
   font-size: 16px;
   color: #555;
+}
+.btn-primary {
+  background-color: #345896;
+  border: none;
+  font-size: 16px;
+  padding: 10px 15px;
+  text-transform: uppercase;
+}
+.btn-primary:hover {
+  background-color: #274270;
 }
 </style>

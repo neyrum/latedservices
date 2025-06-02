@@ -33,6 +33,15 @@ module.exports = (sequelize, DataTypes) => {
     mediaUrl: {
       type: DataTypes.STRING,
       allowNull: true,
+      },
+    url: {  // 📌 Nueva columna para la URL del proyecto
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isUrl: {
+         msg: "❌ La URL ingresada no es válida."
+        },  
+      },
     },
   }, { 
     sequelize,

@@ -5,7 +5,7 @@
     <!-- Botón para mostrar/ocultar formulario -->
     <button @click="toggleForm" class="btn-toggle">
       <i class="fas" :class="showForm ? 'fa-times' : 'fa-plus-circle'"></i>
-      <span v-if="!showForm">{{ isEditing ? "Editar Proyecto" : "Agregar Proyecto" }}</span>
+      <span v-if="!showForm">{{ isEditing ? "Editar Proyecto" : " Agregar Proyecto" }}</span>
     </button>
     
     <!-- Formulario de creación/edición -->
@@ -53,6 +53,11 @@
             required
           />
         </div>
+
+        <div class="input-group">
+          <label for="url">URL del Proyecto</label>
+          <input v-model="project.url" type="url" id="url" placeholder="Ejemplo: https://mi-proyecto.com" />
+        </div>
         
         <!-- Grupo para selección de archivo -->
         <div class="input-group file-group">
@@ -74,7 +79,7 @@
             class="file-input"
           />
         </div>
-        
+
         <div class="input-group checkbox-group">
           <label>
             <input type="checkbox" v-model="project.featured" />
@@ -142,7 +147,8 @@ export default {
         category: "",
         client: "",
         media: null,
-        featured: false
+        featured: false,
+        url: ""
       },
       showForm: false,
       isEditing: false,
@@ -218,6 +224,12 @@ export default {
         formData.append("category", this.project.category);
         formData.append("client", this.project.client);
         formData.append("featured", this.project.featured ? "true" : "false");
+        
+        if (this.project.url && this.project.url.trim() !== "") {
+         formData.append("url", this.project.url);
+         }
+
+
         if (this.project.media) {
           formData.append("media", this.project.media);
         }
