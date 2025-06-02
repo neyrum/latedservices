@@ -12,7 +12,6 @@
 
       <!-- Opciones solo para administradores -->
       <template v-if="isAdminOrSuperAdmin">
-
         <!-- Gestión de Servicios -->
         <div class="menu-dropdown">
           <button @click="toggleServices">
@@ -28,14 +27,14 @@
 
         <!-- Gestión del Portafolio -->
         <div class="menu-dropdown">
-        <button @click="togglePortfolio">
-          <i class="fas fa-briefcase"></i> Gestión de Portafolio
-          <i class="fas" :class="{ 'fa-chevron-down': !showPortfolio, 'fa-chevron-up': showPortfolio }"></i>
-        </button>
-        <div v-show="showPortfolio" class="dropdown-content">
-           <button class="dropdown-item" @click="changeSection('portfolioManagement')">
-            Ver / Agregar al Portafolio
-           </button>
+          <button @click="togglePortfolio">
+            <i class="fas fa-briefcase"></i> Gestión de Portafolio
+            <i class="fas" :class="{ 'fa-chevron-down': !showPortfolio, 'fa-chevron-up': showPortfolio }"></i>
+          </button>
+          <div v-show="showPortfolio" class="dropdown-content">
+            <button class="dropdown-item" @click="changeSection('portfolioManagement')">
+              Ver / Agregar al Portafolio
+            </button>
           </div>
         </div>
 
@@ -52,19 +51,23 @@
           </div>
         </div>
 
-       <!-- Gestión de Solicitudes -->
-       <div class="menu-dropdown">
-         <button @click="toggleRequests">
-         <i class="fas fa-list-alt"></i> Gestión de Solicitud
-         <i class="fas" :class="{ 'fa-chevron-down': !showRequests, 'fa-chevron-up': showRequests }"></i>
-         </button>
-       <div v-show="showRequests" class="dropdown-content">
-       <button class="dropdown-item" @click="changeSection('manageRequests')">
-      Ver / Solicitudes
-    </button>
-  </div>
-</div>
+        <!-- Gestión de Solicitudes -->
+        <div class="menu-dropdown">
+          <button @click="toggleRequests">
+            <i class="fas fa-list-alt"></i> Gestión de Solicitud
+            <i class="fas" :class="{ 'fa-chevron-down': !showRequests, 'fa-chevron-up': showRequests }"></i>
+          </button>
+          <div v-show="showRequests" class="dropdown-content">
+            <button class="dropdown-item" @click="changeSection('manageRequests')">
+              Ver / Solicitudes
+            </button>
+          </div>
+        </div>
 
+        <!-- Integración del Chat para Administradores -->
+        <button class="menu-item" @click="changeSection('chat')">
+          <i class="fas fa-comments"></i> Chat
+        </button>
       </template>
 
       <!-- Opciones solo para clientes -->
@@ -74,6 +77,10 @@
             <i class="fas fa-history"></i> Historial de Solicitudes
           </button>
         </div>
+        <!-- Integración del Chat para Clientes -->
+        <button class="menu-item" @click="changeSection('chat')">
+          <i class="fas fa-comments"></i> Chat con el Administrador
+        </button>
       </template>
     </nav>
   </aside>
@@ -91,32 +98,41 @@ export default {
     };
   },
   computed: {
+    // Se obtiene la información del usuario a través del getter correspondiente de Vuex
     userData() {
       return this.$store.getters["auth/userData"] || {};
     },
+    // Se extrae el rol del usuario de la información obtenida
     userRole() {
       return this.userData.role || "";
     },
+    // Determina si el usuario es administrador o superadministrador
     isAdminOrSuperAdmin() {
       return this.userRole === "admin" || this.userRole === "superadmin";
     },
+    // Determina si el usuario tiene rol de cliente
     isUser() {
       return this.userRole === "client";
     },
   },
   methods: {
+    // Alterna la visibilidad del menú de servicios
     toggleServices() {
       this.showServices = !this.showServices;
     },
+    // Alterna la visibilidad del menú de usuarios
     toggleUsers() {
       this.showUsers = !this.showUsers;
     },
-     toggleRequests() {
-    this.showRequests = !this.showRequests;
+    // Alterna la visibilidad del menú de solicitudes
+    toggleRequests() {
+      this.showRequests = !this.showRequests;
     },
+    // Alterna la visibilidad del menú del portafolio
     togglePortfolio() {
-    this.showPortfolio = !this.showPortfolio;
-  },
+      this.showPortfolio = !this.showPortfolio;
+    },
+    // Emitir el cambio de sección para que el componente padre (por ejemplo, Dashboard) actualice la vista
     changeSection(section) {
       this.$emit("section-change", section);
     },
@@ -137,16 +153,19 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .sidebar-header {
   font-size: 22px;
   font-weight: bold;
   margin-bottom: 20px;
 }
+
 .sidebar-menu {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .menu-item {
   padding: 10px;
   display: flex;
@@ -157,16 +176,19 @@ export default {
   color: white;
   font-size: 16px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background 0.3s;
 }
+
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 5px;
 }
+
 .menu-dropdown {
   display: flex;
   flex-direction: column;
 }
+
 .menu-dropdown button {
   background: none;
   border: none;
@@ -178,17 +200,20 @@ export default {
   width: 100%;
   padding: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background 0.3s;
 }
+
 .menu-dropdown button:hover {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 5px;
 }
+
 .dropdown-content {
   display: flex;
   flex-direction: column;
   padding-left: 15px;
 }
+
 .dropdown-item {
   padding: 8px;
   background: none;
@@ -197,8 +222,9 @@ export default {
   font-size: 14px;
   text-align: left;
   cursor: pointer;
-  transition: 0.3s;
+  transition: color 0.3s;
 }
+
 .dropdown-item:hover {
   color: white;
 }

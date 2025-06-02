@@ -19,6 +19,7 @@ const auditRoutes = require("./routes/audit.routes");
 const adminRoutes = require("./routes/admin.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const portfolioRoutes = require("./routes/portfolio.routes");
+const messagesRoutes = require("./routes/messages.routes");
 
 const app = express();
 const server = http.createServer(app);
@@ -76,6 +77,7 @@ app.use("/api/audit-logs", auditRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/portfolio", portfolioRoutes);
+app.use("/api/messages", messagesRoutes);
 
 // 🔹 Ruta principal
 app.get("/", (req, res) => {
