@@ -1,5 +1,7 @@
 const { Request, Service, User, sequelize } = require('../models'); // Asegúrate de importar sequelize
 const { Op } = require('sequelize');
+const PDFDocument = require("pdfkit");
+const ExcelJS = require("exceljs");
 
 /**
  * @desc Crear nueva solicitud de servicio
@@ -147,6 +149,88 @@ const updateRequestStatus = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+/**
+ * @desc Exportar reporte de solicitudes en PDF con mejor formato
+ * @route GET /api/requests/export
+ * @access Privado (Admin, Manager)
+ */
+const exportRequestsReport = async (req, res) => {
+  try {
+    const requests = await Request.findAll({
+      include: [{ model: User, as: "client", attributes: ["name", "email"] }, { model: Service, as: "service", attributes: ["name", "price"] }],
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (!requests.length) return res.status(404).json({ message: "No hay solicitudes disponibles para el reporte." });
+
+    const doc = new PDFDocument();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=reporte_servicios.pdf");
+
+    doc.pipe(res);
+    doc.fontSize(20).text("Reporte de Servicios Prestados", { align: "center" });
+    doc.moveDown();
+    doc.fontSize(14).text(`Generado el: ${new Date().toLocaleString()}`, { align: "right" });
+    doc.moveDown();
+
+    requests.forEach((req, index) => {
+      doc.fontSize(14).text(`${index + 1}. ${req.service.name}`, { bold: true });
+      doc.fontSize(12).text(`   Cliente: ${req.client.name}`);
+      doc.fontSize(12).text(`   Estado: ${req.status}`);
+      doc.moveDown();
+      doc.strokeColor("gray").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error("❌ Error al generar el reporte:", error);
+    res.status(500).json({ message: "Error al generar el reporte" });
+  }
+};
+
+/**
+ * @desc Exportar solicitudes a Excel
+ * @route GET /api/requests/export/excel
+ * @access Privado (Admin, Manager)
+ */
+const exportRequestsExcel = async (req, res) => {
+  try {
+    const requests = await Request.findAll({
+      include: [{ model: Service, as: "service" }, { model: User, as: "client" }],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Servicios Prestados");
+
+    worksheet.columns = [
+      { header: "ID", key: "id", width: 10 },
+      { header: "Servicio", key: "service", width: 30 },
+      { header: "Cliente", key: "client", width: 25 },
+      { header: "Estado", key: "status", width: 15 },
+    ];
+
+    requests.forEach((req) => {
+      worksheet.addRow({
+        id: req.id,
+        service: req.service.name,
+        client: req.client.name,
+        status: req.status,
+      });
+    });
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", "attachment; filename=reporte.xlsx");
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("❌ Error al generar el reporte Excel:", error);
+    res.status(500).json({ message: "Error al generar el reporte Excel" });
   }
 };
 
@@ -311,4 +395,6 @@ module.exports = {
   getClientRequests,
   getRequestDetails,
   getAllRequests,
+  exportRequestsReport,
+  exportRequestsExcel,
 };

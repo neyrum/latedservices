@@ -7,8 +7,14 @@ const {
     updateRequestStatus, 
     getClientRequests,
     getRequestDetails,
-    getAllRequests, 
+    getAllRequests,
+    exportRequestsReport, 
+    exportRequestsExcel,
 } = require('../controllers/request.controller');
+
+// Para exportar reporte
+router.get("/export", authenticate, authorize(["superadmin", "admin"]), exportRequestsReport);
+router.get("/export/excel", authenticate, authorize(["superadmin", "admin"]), exportRequestsExcel);
 
 
 // Rutas para clientes
@@ -21,5 +27,6 @@ router.get('/client/history', authenticate, authorize(['superadmin','admin','cli
 // Rutas para administradores y managers
 router.put('/:id/status', authenticate, authorize(['superadmin','admin', 'manager']), updateRequestStatus);
 router.get("/", authenticate, authorize(["superadmin", "admin", "manager"]), getAllRequests);
+
 
 module.exports = router;

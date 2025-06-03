@@ -2,6 +2,17 @@
   <div class="admin-requests">
     <h3 class="dashboard-title">Solicitudes Pendientes</h3>
 
+     <!-- Botones de exportación -->
+    <div class="export-buttons">
+      <button @click="downloadReport" class="btn-download">
+        📄 Exportar Reporte PDF
+      </button>
+
+      <button @click="downloadExcel" class="btn-download">
+        📊 Exportar Reporte Excel
+      </button>
+    </div>
+
     <p v-if="isLoading">Cargando solicitudes...</p>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 
@@ -81,9 +92,15 @@
 
 <script>
 import axios from "@/plugins/axios";
+import { useToast } from "vue-toastification";
+import "vue-toastification/dist/index.css"; // Importa los estilos de Toastification
 
 export default {
   name: "AdminRequests",
+  setup() {
+  const toast = useToast();
+    return { toast };
+},
   data() {
     return {
       requests: [],
@@ -115,6 +132,60 @@ export default {
         this.isLoading = false;
       }
     },
+    
+    async downloadReport() {
+    try {
+      const token = this.$store.getters["auth/token"];
+      const apiUrl = process.env.VUE_APP_API_URL;
+      // Se hace la solicitud GET con header de autorización y responseType blob
+      const response = await axios.get(`${apiUrl}/requests/export`, {
+        headers: { Authorization: "Bearer " + token },
+        responseType: "blob"
+      });
+      // Crear un objeto Blob a partir de los datos de la respuesta
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      // Crear un enlace temporal para disparar la descarga
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "reporte_servicios.pdf");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.toast.success("📄 El reporte PDF se ha descargado exitosamente");
+    } catch (error) {
+      console.error("Error al descargar el reporte PDF:", error);
+      this.toast.error("❌ Hubo un problema al descargar el reporte PDF");
+    }
+  },
+
+  async downloadExcel() {
+    try {
+      const token = this.$store.getters["auth/token"];
+      const apiUrl = process.env.VUE_APP_API_URL;
+      // Solicitud GET para Excel con el header del token y responseType blob
+      const response = await axios.get(`${apiUrl}/requests/export/excel`, {
+        headers: { Authorization: "Bearer " + token },
+        responseType: "blob"
+      });
+      // Crear blob y objeto URL para el archivo Excel
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "reporte_servicios.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.toast.success("📊 El reporte Excel se ha descargado exitosamente");
+    } catch (error) {
+      console.error("Error al descargar el reporte Excel:", error);
+      this.toast.error("❌ Hubo un problema al descargar el reporte Excel");
+    }
+  },
+
     async updateRequestStatus(requestId, newStatus) {
       try {
         await axios.put(`/requests/${requestId}/status`, { status: newStatus }, {
@@ -335,5 +406,25 @@ export default {
 .action-buttons {
   display: flex;
   gap: 5px;
+}
+.export-buttons {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-download {
+  background-color: #345996;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-download:hover {
+  background-color: #0056b3;
 }
 </style>
