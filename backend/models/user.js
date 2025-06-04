@@ -91,6 +91,35 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true, // Puede ser nulo si no se ha subido una foto
       },
+      // 🔹 Nuevos campos: datos laborales del cliente
+      faculty: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          notEmpty: { msg: 'La facultad no puede estar vacía' },
+        },
+      },
+      area: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          notEmpty: { msg: 'El área no puede estar vacía' },
+        },
+      },
+      work_identity: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          notEmpty: { msg: 'La identidad laboral no puede estar vacía' },
+        },
+      },
+      department: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          notEmpty: { msg: 'El departamento no puede estar vacío' },
+        },
+      },
     },
     {
       sequelize,

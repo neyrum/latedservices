@@ -2,15 +2,13 @@ const { Request, Service, User, sequelize } = require('../models'); // Asegúrat
 const { Op } = require('sequelize');
 const PDFDocument = require("pdfkit");
 const ExcelJS = require("exceljs");
-const emoji = require("emoji-img");
-const fs = require("fs");
 
 /**
  * @desc Crear nueva solicitud de servicio
  * @route POST /api/requests
  * @access Privado (Cliente)
  */
-const createRequest = async (req, res) => {
+  const createRequest = async (req, res) => {
   const transaction = await sequelize.transaction(); // Crear una transacción
   try {
     const { serviceId, details, preferredDate, address } = req.body;
@@ -155,18 +153,14 @@ const updateRequestStatus = async (req, res) => {
 };
 
 /**
- * @desc Exportar reporte de solicitudes en PDF
+ * @desc Exportar reporte de solicitudes en PDF con mejor formato
  * @route GET /api/requests/export
  * @access Privado (Admin, Manager)
  */
-
 const exportRequestsReport = async (req, res) => {
   try {
     const requests = await Request.findAll({
-      include: [
-        { model: User, as: "client", attributes: ["name", "email", "faculty", "area", "work_identity", "department"] },
-        { model: Service, as: "service", attributes: ["name", "price"] }
-      ],
+      include: [{ model: User, as: "client", attributes: ["name", "email"] }, { model: Service, as: "service", attributes: ["name", "price"] }],
       order: [["createdAt", "DESC"]],
     });
 
@@ -174,59 +168,19 @@ const exportRequestsReport = async (req, res) => {
 
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=reporte_clientes.pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=reporte_servicios.pdf");
 
     doc.pipe(res);
-
-    // 📌 Definir rutas de iconos
-    const reportIcon = "public/icons/report_icon.png";
-    const dateIcon = "public/icons/date_icon.png";
-    const facultyIcon = "public/icons/faculty_icon.png";
-    const workIcon = "public/icons/work_icon.png";
-    const departmentIcon = "public/icons/department_icon.png";
-
-    // 📌 Título del reporte con icono
-    if (fs.existsSync(reportIcon)) {
-      doc.image(reportIcon, 50, doc.y, { width: 20, height: 20 });
-    }
-    doc.fontSize(20).text("Reporte de Servicios - Datos Laborales", 80, doc.y); // 🔹 Alineado con la imagen
-
+    doc.fontSize(20).text("Reporte de Servicios Prestados", { align: "center" });
     doc.moveDown();
-
-    // 📌 Fecha de generación con icono
-    if (fs.existsSync(dateIcon)) {
-      doc.image(dateIcon, 50, doc.y, { width: 15, height: 15 });
-    }
-    doc.fontSize(14).text(`Generado el: ${new Date().toLocaleString()}`, 80, doc.y);
-
+    doc.fontSize(14).text(`Generado el: ${new Date().toLocaleString()}`, { align: "right" });
     doc.moveDown();
 
     requests.forEach((req, index) => {
-      doc.fontSize(14).text(`${index + 1}. ${req.client.name}`, { bold: true });
+      doc.fontSize(14).text(`${index + 1}. ${req.service.name}`, { bold: true });
+      doc.fontSize(12).text(`   Cliente: ${req.client.name}`);
+      doc.fontSize(12).text(`   Estado: ${req.status}`);
       doc.moveDown();
-
-      // 📌 Facultad/Área con icono
-      if (fs.existsSync(facultyIcon)) {
-        doc.image(facultyIcon, 50, doc.y, { width: 15, height: 15 });
-      }
-      doc.text(`Facultad/Área: ${req.client.faculty || "-"}`, 70, doc.y);
-      doc.moveDown();
-
-      // 📌 Identidad Laboral con icono
-      if (fs.existsSync(workIcon)) {
-        doc.image(workIcon, 50, doc.y, { width: 15, height: 15 });
-      }
-      doc.text(`Identidad Laboral: ${req.client.work_identity || "-"}`, 70, doc.y);
-      doc.moveDown();
-
-      // 📌 Departamento con icono
-      if (fs.existsSync(departmentIcon)) {
-        doc.image(departmentIcon, 50, doc.y, { width: 15, height: 15 });
-      }
-      doc.text(`Departamento: ${req.client.department || "-"}`, 70, doc.y);
-      doc.moveDown();
-
-      // 🔹 Línea separadora
       doc.strokeColor("gray").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown();
     });
@@ -255,22 +209,16 @@ const exportRequestsExcel = async (req, res) => {
 
     worksheet.columns = [
       { header: "ID", key: "id", width: 10 },
-      { header: "Cliente", key: "client", width: 25 },
-      { header: "Facultad/Área", key: "faculty", width: 30 },
-      { header: "Identidad Laboral", key: "work_identity", width: 25 },
-      { header: "Departamento", key: "department", width: 20 },
       { header: "Servicio", key: "service", width: 30 },
+      { header: "Cliente", key: "client", width: 25 },
       { header: "Estado", key: "status", width: 15 },
     ];
 
     requests.forEach((req) => {
       worksheet.addRow({
         id: req.id,
-        client: req.client.name,
-        faculty: req.client.faculty || "-",
-        work_identity: req.client.work_identity || "-",
-        department: req.client.department || "-",
         service: req.service.name,
+        client: req.client.name,
         status: req.status,
       });
     });
