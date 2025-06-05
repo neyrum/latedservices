@@ -44,80 +44,44 @@
       </div>
 
       <!-- Modal de Confirmación -->
-      <div
-        class="modal fade"
-        id="confirmationModal"
-        tabindex="-1"
-        aria-labelledby="confirmationModalLabel"
-        aria-hidden="true"
-      >
+      <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="confirmationModalLabel">Confirmar Solicitud</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               ¿Estás seguro de que deseas solicitar el servicio "{{ selectedService?.name }}"?
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-              <button type="button" class="btn btn-primary" @click="openRequestForm">
-                Sí, Solicitar
-              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-primary" @click="openRequestForm">Sí, Solicitar</button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Modal del Formulario -->
-      <div
-        class="modal fade"
-        id="requestFormModal"
-        tabindex="-1"
-        aria-labelledby="requestFormModalLabel"
-        aria-hidden="true"
-      >
+      <div class="modal fade" id="requestFormModal" tabindex="-1" aria-labelledby="requestFormModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="requestFormModalLabel">Formulario de Solicitud</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body">
               <form @submit.prevent="submitRequest">
                 <div class="form-group">
                   <label for="description">Descripción</label>
-                  <textarea
-                    id="description"
-                    v-model="form.description"
-                    class="form-control"
-                    rows="4"
-                    placeholder="Describe el servicio que necesitas"
-                    required
-                  ></textarea>
+                  <textarea id="description" v-model="form.description" class="form-control" rows="4" placeholder="Describe el servicio que necesitas" required></textarea>
                   <span v-if="errors.description" class="text-danger">{{ errors.description }}</span>
                 </div>
+
                 <div class="form-group">
                   <label for="priority">Prioridad</label>
-                  <select
-                    id="priority"
-                    v-model="form.priority"
-                    class="form-control"
-                    required
-                  >
+                  <select id="priority" v-model="form.priority" class="form-control" required>    
                     <option value="low">Baja</option>
                     <option value="medium">Media</option>
                     <option value="high">Alta</option>
@@ -126,44 +90,33 @@
                 </div>
                 
                 <div class="form-group">
-                <label for="preferredDate">Fecha Preferida</label>
-                <input type="date" id="preferredDate" v-model="form.preferredDate" class="form-control" required />
-                <span v-if="errors.preferredDate" class="text-danger">{{ errors.preferredDate }}</span>
+                  <label for="preferredDate">Fecha Preferida</label>
+                  <input type="date" id="preferredDate" v-model="form.preferredDate" class="form-control" required />
+                  <span v-if="errors.preferredDate" class="text-danger">{{ errors.preferredDate }}</span>
                 </div>
 
-                <!-- Campo para Facultad/Area o Identidad Laboral -->
-              <div class="form-group">
-              <label for="street">Facultad/Area o Identidad Laboral</label>
-              <input type="text"id="street" v-model="form.street"class="form-control" placeholder="Ingresa la facultad, area o identidad laboral" required />
-              <span v-if="errors.street" class="text-danger">{{ errors.street }}</span>
-              </div>
+               <!-- Campo para Facultad/Area o Identidad Laboral -->
+               <div class="form-group">
+                 <label for="facultyOrWorkIdentity">Facultad/Área o Identidad Laboral</label>
+                 <input type="text" id="facultyOrWorkIdentity" v-model="form.facultyOrWorkIdentity" class="form-control" placeholder="Ingresa la facultad, área o identidad laboral" required />
+                 <span v-if="errors.facultyOrWorkIdentity" class="text-danger">{{ errors.facultyOrWorkIdentity }}</span>
+               </div>
 
               <!-- Campo para Departamneto -->
-             <div class="form-group mt-3">
-             <label for="city">Departamneto</label>
-             <input type="text" id="city" v-model="form.city" class="form-control" placeholder="Ingresa el departamento al q pertenece" required />
-             <span v-if="errors.city" class="text-danger">{{ errors.city }}</span>
-             </div>
-
-              <!-- Campo para Código Postal 
               <div class="form-group mt-3">
-              <label for="zip">Código Postal</label>
-              <input type="text" id="zip" v-model="form.zip" class="form-control" placeholder="Ingresa el código postal" required />
-              <span v-if="errors.zip" class="text-danger">{{ errors.zip }}</span>
-              </div> -->
+                <label for="department">Departamento</label>
+                <input type="text" id="department" v-model="form.department" class="form-control" placeholder="Ingresa el departamento al que pertenece" required />
+                <span v-if="errors.department" class="text-danger">{{ errors.department }}</span>
+              </div>
 
-                <button
-                  type="submit"
-                  class="btn btn-primary mt-3"
-                  :disabled="isSubmitting"
-                >
+              <button type="submit" class="btn btn-primary mt-3" :disabled="isSubmitting">
                   {{ isSubmitting ? "Enviando..." : "Enviar Solicitud" }}
-                </button>
-              </form>
+              </button>
+            </form>
             </div>
           </div>
         </div>
-      </div>
+      </div>  
 
       <!-- Lista de Servicios Solicitados -->
       <div v-if="requestedServices.length > 0" class="mt-5">
@@ -201,9 +154,8 @@ export default {
         description: "",
         priority: "medium",
         preferredDate: "", 
-        street: "",
-        city: "",
-        zip: "",
+        facultyOrWorkIdentity: "",
+        department: ""
       },
       errors: {},
       errorMessage: "",
@@ -280,16 +232,14 @@ export default {
   }
 
 
-      // Validar campos de dirección
-      if (!this.form.street || !this.form.street.trim()) {
-        this.errors.street = "La calle es obligatoria.";
-      }
-      if (!this.form.city || !this.form.city.trim()) {
-        this.errors.city = "La ciudad es obligatoria.";
-      }
-     // if (!this.form.zip || !this.form.zip.trim()) {
-     //   this.errors.zip = "El código postal es obligatorio.";
-     // } 
+      // 🔹 Validar Facultad/Área o Identidad Laboral
+      if (!this.form.facultyOrWorkIdentity || !this.form.facultyOrWorkIdentity.trim()) {
+        this.errors.facultyOrWorkIdentity = "Este campo es obligatorio.";
+    }
+      // 🔹 Validar Departamento
+      if (!this.form.department || !this.form.department.trim()) {
+        this.errors.department = "El departamento es obligatorio.";
+    } 
 
       // Si no hay propiedades en el objeto errors, retorna true
       return Object.keys(this.errors).length === 0;
@@ -314,34 +264,24 @@ export default {
         return;
       }
 
-      // Construir el objeto address a partir de los nuevos campos
-      const addressObj = {
-       street: this.form.street.trim(),
-       city: this.form.city.trim(),
-      // zip: this.form.zip.trim(),
-  };
-
       try { 
-        
-        console.log("Solicitud enviada:", {
+        // 🔹 Definir la estructura del objeto a enviar
+        const requestData = {
           serviceId: this.selectedService.id,
           details: this.form.description,
           priority: this.form.priority,
           preferredDate: this.form.preferredDate,
-          address: addressObj,
+          facultyOrWorkIdentity: this.form.facultyOrWorkIdentity.trim(),
+          department: this.form.department.trim(),
           status: "pendiente",
-        });
+        };
 
+        console.log("Solicitud enviada:", requestData); // 🔹 Para depuración antes de enviarlo
+
+        // 🔹 Enviar la solicitud con `requestData`
         const response = await axios.post(
           "/requests",
-          {
-            serviceId: this.selectedService.id,
-            details: this.form.description,
-            priority: this.form.priority,
-            preferredDate: this.form.preferredDate,
-            address: addressObj,
-            status: "pendiente",
-          },
+          requestData,
           {
             headers: {
               Authorization: `Bearer ${this.$store.getters["auth/token"]}`,
@@ -359,9 +299,8 @@ export default {
         this.form.description = "";
         this.form.priority = "medium";
         this.form.preferredDate = "";
-        this.form.street = "";
-        this.form.city = "";
-        //this.form.zip = "";
+        this.form.facultyOrWorkIdentity = "";
+        this.form.department = "";
 
         const requestFormModal = bootstrap.Modal.getInstance(document.getElementById("requestFormModal"));
         requestFormModal.hide();

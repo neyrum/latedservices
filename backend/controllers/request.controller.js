@@ -13,7 +13,9 @@ const fs = require("fs");
 const createRequest = async (req, res) => {
   const transaction = await sequelize.transaction(); // Crear una transacción
   try {
-    const { serviceId, details, preferredDate, address } = req.body;
+    const { serviceId, details, preferredDate, facultyOrWorkIdentity, department } = req.body;
+
+    console.log("Datos recibidos en el backend:", req.body); // Debug para verificar datos
 
     // 1. Verificar que el servicio exista y esté activo
     const service = await Service.findOne({
@@ -32,7 +34,8 @@ const createRequest = async (req, res) => {
         serviceId,
         details,
         preferredDate,
-        address,
+        facultyOrWorkIdentity: facultyOrWorkIdentity || null, // Manejo de valores opcionales
+        department: department || null,
         status: 'pendiente',
       },
       { transaction }
@@ -48,6 +51,8 @@ const createRequest = async (req, res) => {
         { model: Service, as: 'service', attributes: ['id', 'name', 'price'] },
       ],
     });
+
+    console.log("Solicitud guardada correctamente:", fullRequest); // Debug para verificar almacenamiento
 
     res.status(201).json({
       success: true,
@@ -154,12 +159,23 @@ const updateRequestStatus = async (req, res) => {
   }
 };
 
+const baseUrl = process.env.APP_URL; // 🔹 URL base del backend
+
+// 🔹 Rutas de iconos
+const reportIcon = "public/icons/report_icon.png";
+const dateIcon = "public/icons/date_icon.png";
+const facultyIcon = "public/icons/faculty_icon.png";
+const workIcon = "public/icons/work_icon.png";
+const departmentIcon = "public/icons/department_icon.png";
+const serviceIcon = "public/icons/service_icon.png"; // 🔹 Icono para servicio
+const statusIcon = "public/icons/status_icon.png"; // 🔹 Icono para estado
+const clientIcon = "public/icons/client_icon.png";
+
 /**
  * @desc Exportar reporte de solicitudes en PDF
  * @route GET /api/requests/export
  * @access Privado (Admin, Manager)
  */
-
 const exportRequestsReport = async (req, res) => {
   try {
     const requests = await Request.findAll({
@@ -172,69 +188,67 @@ const exportRequestsReport = async (req, res) => {
 
     if (!requests.length) return res.status(404).json({ message: "No hay solicitudes disponibles para el reporte." });
 
+    // 🔹 Configurar el documento PDF
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=reporte_clientes.pdf");
 
     doc.pipe(res);
 
-    // 📌 Definir rutas de iconos
-    const reportIcon = "public/icons/report_icon.png";
-    const dateIcon = "public/icons/date_icon.png";
-    const facultyIcon = "public/icons/faculty_icon.png";
-    const workIcon = "public/icons/work_icon.png";
-    const departmentIcon = "public/icons/department_icon.png";
-
-    // 📌 Título del reporte con icono
-    if (fs.existsSync(reportIcon)) {
-      doc.image(reportIcon, 50, doc.y, { width: 20, height: 20 });
-    }
-    doc.fontSize(20).text("Reporte de Servicios - Datos Laborales", 80, doc.y); // 🔹 Alineado con la imagen
-
+    // 🔹 Título con ícono
+    if (fs.existsSync(reportIcon)) doc.image(reportIcon, 50, doc.y, { width: 20, height: 20 });
+    doc.fontSize(20).text("Reporte de Servicios Prestados", 80, doc.y);
     doc.moveDown();
 
-    // 📌 Fecha de generación con icono
-    if (fs.existsSync(dateIcon)) {
-      doc.image(dateIcon, 50, doc.y, { width: 15, height: 15 });
-    }
+    // 🔹 Fecha de generación con ícono
+    if (fs.existsSync(dateIcon)) doc.image(dateIcon, 50, doc.y, { width: 15, height: 15 });
     doc.fontSize(14).text(`Generado el: ${new Date().toLocaleString()}`, 80, doc.y);
-
     doc.moveDown();
 
     requests.forEach((req, index) => {
-      doc.fontSize(14).text(`${index + 1}. ${req.client.name}`, { bold: true });
+      // 🔹 Separador de cada solicitud
+      doc.strokeColor("black").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown();
+      
+      // 📌 Cliente con icono y en negritas
+     if (fs.existsSync(clientIcon)) doc.image(clientIcon, 50, doc.y, { width: 15, height: 15 });
+     doc.font("Helvetica-Bold").fontSize(14).text(`Cliente: ${req.client.name}`, 70, doc.y);
+     doc.moveDown();
 
-      // 📌 Facultad/Área con icono
-      if (fs.existsSync(facultyIcon)) {
-        doc.image(facultyIcon, 50, doc.y, { width: 15, height: 15 });
-      }
-      doc.text(`Facultad/Área: ${req.client.faculty || "-"}`, 70, doc.y);
+      // 📌 Facultad con icono
+      if (fs.existsSync(facultyIcon)) doc.image(facultyIcon, 50, doc.y, { width: 15, height: 15 });
+      doc.text(`Facultad/Área: ${req.client.faculty || "No especificado"}`, 70, doc.y);
       doc.moveDown();
 
       // 📌 Identidad Laboral con icono
-      if (fs.existsSync(workIcon)) {
-        doc.image(workIcon, 50, doc.y, { width: 15, height: 15 });
-      }
-      doc.text(`Identidad Laboral: ${req.client.work_identity || "-"}`, 70, doc.y);
+      if (fs.existsSync(workIcon)) doc.image(workIcon, 50, doc.y, { width: 15, height: 15 });
+      doc.text(`Identidad Laboral: ${req.client.work_identity || "No especificado"}`, 70, doc.y);
       doc.moveDown();
 
       // 📌 Departamento con icono
-      if (fs.existsSync(departmentIcon)) {
-        doc.image(departmentIcon, 50, doc.y, { width: 15, height: 15 });
-      }
-      doc.text(`Departamento: ${req.client.department || "-"}`, 70, doc.y);
+      if (fs.existsSync(departmentIcon)) doc.image(departmentIcon, 50, doc.y, { width: 15, height: 15 });
+      doc.text(`Departamento: ${req.client.department || "No especificado"}`, 70, doc.y);
       doc.moveDown();
 
-      // 🔹 Línea separadora
-      doc.strokeColor("gray").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      // 🔹 Línea separadora entre datos del cliente y servicio
+      doc.strokeColor("gray").lineWidth(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+
+      // 📌 Servicio solicitado con icono
+      if (fs.existsSync(serviceIcon)) doc.image(serviceIcon, 50, doc.y, { width: 15, height: 15 });
+      doc.text(`Servicio Solicitado: ${req.service.name}`, 70, doc.y);
+      doc.moveDown();
+
+      // 📌 Estado del servicio con icono
+      if (fs.existsSync(statusIcon)) doc.image(statusIcon, 50, doc.y, { width: 15, height: 15 });
+      doc.text(`Estado: ${req.status || "Pendiente"}`, 70, doc.y);
       doc.moveDown();
     });
 
     doc.end();
   } catch (error) {
     console.error("❌ Error al generar el reporte:", error);
-    res.status(500).json({ message: "Error al generar el reporte" });
+    res.status(500).json({ message: "Error interno al generar el reporte" });
   }
 };
 
@@ -347,7 +361,7 @@ const getRequestDetails = async (req, res) => {
         {
           model: User,
           as: 'client', // Alias correcto
-          attributes: ['id', 'name', 'email', 'phone'],
+          attributes: ['id', 'name', 'email', 'phone', 'faculty', 'work_identity', 'department'],
         },
         {
           model: Service,
@@ -411,7 +425,7 @@ const getAllRequests = async (req, res) => {
         {
           model: User,
           as: 'client', // Alias correcto para el cliente
-          attributes: ['id', 'name', 'email'],
+          attributes: ['id', 'name', 'email', 'faculty', 'work_identity', 'department'],
         },
         {
           model: Service,
