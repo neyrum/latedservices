@@ -72,11 +72,11 @@
               <hr class="my-1">
               <div>
                 <h6 class="mb-1">Datos Laborales</h6>
-                <p class="mb-1" v-if="request.client">
-                  <strong>Facultad/Area o Identidad Laboral:</strong> {{ request.client.faculty || "No especificado" }}
+                <p class="mb-1" v-if="request.address">
+                  <strong>Facultad/Area o Identidad Laboral:</strong> {{ request.address.street }}
                 </p>
-                <p class="mb-0" v-if="request.client">
-                  <strong>Departamneto:</strong> {{ request.client.department || "No especificado" }}
+                <p class="mb-0" v-if="request.address">
+                  <strong>Departamneto:</strong> {{ request.address.city }}
                 </p>
               </div>
             </div>

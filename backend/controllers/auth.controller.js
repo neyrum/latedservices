@@ -50,8 +50,6 @@ async function getProfile(req, res) {
   }
 }
 
-
-
 // Registrar un nuevo usuario
 const register = async (req, res) => {
   try {

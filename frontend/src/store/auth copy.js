@@ -12,7 +12,7 @@ export default {
       state.isAuthenticated = status;
     },
     // Guarda los datos del usuario en el estado
-     SET_USER_DATA(state, data) {
+    setUserData(state, data) {
       state.userData = data;
     },
   },
@@ -28,7 +28,7 @@ export default {
         await dispatch("fetchUserData");
       } catch (error) {
         console.error("Error al iniciar sesión:", error);
-        throw new Error(error.response?.data?.message || "Error desconocido al iniciar sesión.");
+        throw error.response?.data?.message || "Error al iniciar sesión.";
       }
     },
 
@@ -37,11 +37,11 @@ export default {
         const response = await api.get("/users/me", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        commit("SET_USER_DATA", response.data);
+        commit("setUserData", response.data);
       } catch (error) {
         if (error.response?.status === 401) {
           commit("SET_AUTHENTICATED", false);
-          commit("SET_USER_DATA", null);
+          commit("setUserData", null);
           localStorage.removeItem("token");
         }
         console.error("Error al obtener los datos del usuario:", error);
@@ -52,16 +52,16 @@ export default {
     logout({ commit }) {
       localStorage.removeItem("token");
       commit("SET_AUTHENTICATED", false);
-      commit("SET_USER_DATA", null);
+      commit("setUserData", null);
 
-       this.$router.push("/login"); // ✅ Redirigir sin recargar la página
-     },
+      window.location.reload(); // Recargar la página después de cerrar sesión
+    },
 
     async validateToken({ dispatch, commit }) {
       const token = localStorage.getItem("token");
       if (!token) {
         commit("SET_AUTHENTICATED", false);
-        commit("SET_USER_DATA", null);
+        commit("setUserData", null);
         return;
       }
     
@@ -71,7 +71,7 @@ export default {
       } catch (error) {
         console.error("Error al validar el token:", error);
         commit("SET_AUTHENTICATED", false);
-        commit("SET_USER_DATA", null);
+        commit("setUserData", null);
         localStorage.removeItem("token");
       }
     },

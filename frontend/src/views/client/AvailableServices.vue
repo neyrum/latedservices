@@ -231,7 +231,6 @@ export default {
     }
   }
 
-
       // 🔹 Validar Facultad/Área o Identidad Laboral
       if (!this.form.facultyOrWorkIdentity || !this.form.facultyOrWorkIdentity.trim()) {
         this.errors.facultyOrWorkIdentity = "Este campo es obligatorio.";
