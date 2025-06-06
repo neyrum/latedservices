@@ -2,54 +2,21 @@
   <div class="admin-requests">
     <h3 class="dashboard-title">Solicitudes Pendientes</h3>
 
-    <!-- Botones de exportación -->
+     <!-- Botones de exportación -->
     <div class="export-buttons">
       <button @click="downloadReport" class="btn-download">
         📄 Exportar Reporte PDF
       </button>
+
       <button @click="downloadExcel" class="btn-download">
         📊 Exportar Reporte Excel
       </button>
     </div>
 
-    <!-- Controles de Filtro y Búsqueda -->
-    <div class="filters">
-      <!-- Input para búsqueda por ID, cliente o servicio -->
-      <input 
-        type="text" 
-        v-model="searchQuery" 
-        placeholder="Buscar por ID, cliente o servicio">
-      
-      <!-- Select para filtrar por estado -->
-      <select v-model="filterStatus">
-        <option value="">Todos los Estados</option>
-        <option value="pendiente">Pendiente</option>
-        <option value="aprobado">Aprobado</option>
-        <option value="rechazado">Rechazado</option>
-        <option value="en_progreso">En Progreso</option>
-        <option value="completado">Completado</option>
-        <option value="cancelado">Cancelado</option>
-      </select>
-      
-      <!-- Select para elegir la clave de ordenamiento -->
-      <select v-model="sortKey">
-        <option value="preferredDate">Fecha Preferida</option>
-        <!-- Puedes agregar más opciones como "priority" si lo manejas -->
-      </select>
-      
-      <!-- Select para definir el orden -->
-      <select v-model="sortOrder">
-        <option value="asc">Ascendente</option>
-        <option value="desc">Descendente</option>
-      </select>
-    </div>
-
-    <!-- Mensajes de carga o error -->
     <p v-if="isLoading">Cargando solicitudes...</p>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 
-    <!-- Tabla de solicitudes (usamos la lista paginada para aplicar filtros y paginación) -->
-    <table v-if="!isLoading && paginatedRequests.length > 0" class="table table-striped">
+    <table v-if="requests.length > 0" class="table table-striped">
       <thead>
         <tr>
           <th>#</th>
@@ -61,13 +28,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="request in paginatedRequests" :key="request.id">
+        <tr v-for="request in requests" :key="request.id">
           <td>{{ request.id }}</td>
           <td>{{ request.client?.name || "Sin asignar" }}</td>
           <td>{{ request.service?.name }}</td>
           <td :class="statusClass(request.status)">
-            <i :class="statusIcon(request.status)"></i>
-            {{ capitalizeStatus(request.status) }}
+            <i :class="statusIcon(request.status)"></i> {{ capitalizeStatus(request.status) }}
           </td>
           <td>{{ new Date(request.preferredDate).toLocaleDateString() }}</td>
           <td class="action-buttons">
@@ -79,6 +45,7 @@
               <i class="fas fa-check-circle"></i>
               <span class="tooltip">Aprobar</span>
             </button>
+
             <!-- Botón de Rechazo -->
             <button 
               class="icon-btn text-danger" 
@@ -87,11 +54,13 @@
               <i class="fas fa-times-circle"></i>
               <span class="tooltip">Rechazar</span>
             </button>
+
             <!-- Botón de Detalles -->
             <button class="icon-btn text-info" @click="goToDetails(request.id)">
               <i class="fas fa-eye"></i>
               <span class="tooltip">Ver detalles</span>
             </button>
+
             <!-- Botón para enviar notificación -->
             <button class="icon-btn text-primary" @click="openNotificationModal(request)">
               <i class="fas fa-envelope"></i>
@@ -102,17 +71,7 @@
       </tbody>
     </table>
 
-    <!-- Mensaje si no hay resultados tras filtrar -->
-    <p v-if="!isLoading && filteredRequests.length === 0">
-      No hay solicitudes que cumplan con los filtros.
-    </p>
-
-    <!-- Paginación -->
-    <div v-if="totalPages > 1" class="pagination">
-      <button @click="prevPage" :disabled="currentPage === 1">Anterior</button>
-      <span>Página {{ currentPage }} de {{ totalPages }}</span>
-      <button @click="nextPage" :disabled="currentPage === totalPages">Siguiente</button>
-    </div>
+    <p v-if="!isLoading && requests.length === 0">No hay solicitudes pendientes.</p>
 
     <!-- Modal para enviar notificación -->
     <div v-if="showNotificationModal" class="modal-overlay" @click.self="closeNotificationModal">
@@ -134,28 +93,19 @@
 <script>
 import axios from "@/plugins/axios";
 import { useToast } from "vue-toastification";
-import "vue-toastification/dist/index.css";
+import "vue-toastification/dist/index.css"; // Importa los estilos de Toastification
 
 export default {
   name: "AdminRequests",
   setup() {
-    const toast = useToast();
+  const toast = useToast();
     return { toast };
-  },
+},
   data() {
     return {
-      // Datos obtenidos del backend
       requests: [],
       isLoading: false,
       errorMessage: "",
-      // Filtros y ordenamiento
-      searchQuery: "",
-      filterStatus: "",
-      sortKey: "preferredDate", // Cambia si tienes otro campo relevante
-      sortOrder: "desc",
-      // Paginación
-      currentPage: 1,
-      pageSize: 10,
       // Variables para el modal de notificación
       showNotificationModal: false,
       modalUserId: null,
@@ -167,45 +117,6 @@ export default {
   },
   created() {
     this.fetchRequests();
-  },
-  computed: {
-    filteredRequests() {
-      let result = this.requests;
-      
-      // Filtrado por búsqueda
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase();
-        result = result.filter(r =>
-          String(r.id).toLowerCase().includes(query) ||
-          (r.client && r.client.name.toLowerCase().includes(query)) ||
-          (r.service && r.service.name.toLowerCase().includes(query))
-        );
-      }
-      
-      // Filtrado por estado
-      if (this.filterStatus) {
-        result = result.filter(r => r.status === this.filterStatus);
-      }
-      
-      // Ordenamiento
-      result.sort((a, b) => {
-        const modifier = this.sortOrder === "asc" ? 1 : -1;
-        const aValue = a[this.sortKey];
-        const bValue = b[this.sortKey];
-        if (aValue < bValue) return -1 * modifier;
-        if (aValue > bValue) return 1 * modifier;
-        return 0;
-      });
-      
-      return result;
-    },
-    paginatedRequests() {
-      const start = (this.currentPage - 1) * this.pageSize;
-      return this.filteredRequests.slice(start, start + this.pageSize);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredRequests.length / this.pageSize);
-    }
   },
   methods: {
     async fetchRequests() {
@@ -221,16 +132,60 @@ export default {
         this.isLoading = false;
       }
     },
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-      }
-    },
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-      }
-    },
+    
+    async downloadReport() {
+    try {
+      const token = this.$store.getters["auth/token"];
+      const apiUrl = process.env.VUE_APP_API_URL;
+      // Se hace la solicitud GET con header de autorización y responseType blob
+      const response = await axios.get(`${apiUrl}/requests/export`, {
+        headers: { Authorization: "Bearer " + token },
+        responseType: "blob"
+      });
+      // Crear un objeto Blob a partir de los datos de la respuesta
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      // Crear un enlace temporal para disparar la descarga
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "reporte_servicios.pdf");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.toast.success("📄 El reporte PDF se ha descargado exitosamente");
+    } catch (error) {
+      console.error("Error al descargar el reporte PDF:", error);
+      this.toast.error("❌ Hubo un problema al descargar el reporte PDF");
+    }
+  },
+
+  async downloadExcel() {
+    try {
+      const token = this.$store.getters["auth/token"];
+      const apiUrl = process.env.VUE_APP_API_URL;
+      // Solicitud GET para Excel con el header del token y responseType blob
+      const response = await axios.get(`${apiUrl}/requests/export/excel`, {
+        headers: { Authorization: "Bearer " + token },
+        responseType: "blob"
+      });
+      // Crear blob y objeto URL para el archivo Excel
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "reporte_servicios.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.toast.success("📊 El reporte Excel se ha descargado exitosamente");
+    } catch (error) {
+      console.error("Error al descargar el reporte Excel:", error);
+      this.toast.error("❌ Hubo un problema al descargar el reporte Excel");
+    }
+  },
+
     async updateRequestStatus(requestId, newStatus) {
       try {
         await axios.put(`/requests/${requestId}/status`, { status: newStatus }, {
@@ -238,7 +193,8 @@ export default {
         });
         this.fetchRequests();
       } catch (error) {
-        this.errorMessage = error.response?.data?.message || "Error al actualizar solicitud.";
+        this.errorMessage =
+          error.response?.data?.message || "Error al actualizar solicitud.";
         console.error("Error al actualizar solicitud:", error);
       }
     },
@@ -283,52 +239,6 @@ export default {
       };
       return iconMap[status] || "fas fa-question-circle text-muted";
     },
-    async downloadReport() {
-      try {
-        const token = this.$store.getters["auth/token"];
-        const apiUrl = process.env.VUE_APP_API_URL;
-        const response = await axios.get(`${apiUrl}/requests/export`, {
-          headers: { Authorization: "Bearer " + token },
-          responseType: "blob"
-        });
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "reporte_servicios.pdf");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        this.toast.success("📄 El reporte PDF se ha descargado exitosamente");
-      } catch (error) {
-        console.error("Error al descargar el reporte PDF:", error);
-        this.toast.error("❌ Hubo un problema al descargar el reporte PDF");
-      }
-    },
-    async downloadExcel() {
-      try {
-        const token = this.$store.getters["auth/token"];
-        const apiUrl = process.env.VUE_APP_API_URL;
-        const response = await axios.get(`${apiUrl}/requests/export/excel`, {
-          headers: { Authorization: "Bearer " + token },
-          responseType: "blob"
-        });
-        const blob = new Blob([response.data], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "reporte_servicios.xlsx");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        this.toast.success("📊 El reporte Excel se ha descargado exitosamente");
-      } catch (error) {
-        console.error("Error al descargar el reporte Excel:", error);
-        this.toast.error("❌ Hubo un problema al descargar el reporte Excel");
-      }
-    },
     openNotificationModal(request) {
       if (request.client && request.client.id) {
         this.modalUserId = request.client.id;
@@ -346,18 +256,18 @@ export default {
     },
     async sendNotification() {
       try {
-        await axios.post(
-          "/notifications/send",
-          { userId: this.modalUserId, message: this.modalMessage },
-          { headers: { Authorization: "Bearer " + this.$store.getters["auth/token"] } }
-        );
+        await axios.post("/notifications/send", {
+          userId: this.modalUserId,
+          message: this.modalMessage
+        }, {
+          headers: { Authorization: "Bearer " + this.$store.getters["auth/token"] }
+        });
         this.modalSuccessMessage = "Notificación enviada exitosamente.";
         setTimeout(() => {
           this.closeNotificationModal();
         }, 1500);
       } catch (error) {
-        this.modalErrorMessage =
-          error.response?.data?.message || "Error al enviar la notificación.";
+        this.modalErrorMessage = error.response?.data?.message || "Error al enviar la notificación.";
         console.error("Error en sendNotification:", error);
       }
     }
@@ -374,7 +284,6 @@ export default {
 
 .table {
   width: 100%;
-  border-collapse: collapse;
   margin-top: 20px;
 }
 
@@ -493,12 +402,11 @@ export default {
   color: #28a745;
 }
 
-/* Ajustes para la tabla y botones de acción */
+/* Opcional: Ajustes para la tabla y botones de acción */
 .action-buttons {
   display: flex;
   gap: 5px;
 }
-
 .export-buttons {
   margin-bottom: 15px;
   display: flex;
@@ -518,26 +426,5 @@ export default {
 
 .btn-download:hover {
   background-color: #0056b3;
-}
-
-/* Controles de filtros */
-.filters {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 15px;
-}
-.filters input,
-.filters select {
-  padding: 5px;
-  font-size: 14px;
-}
-
-/* Paginación */
-.pagination {
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 </style>

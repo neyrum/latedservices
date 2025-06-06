@@ -33,6 +33,6 @@ frontend/*.bak
 Thumbs.db
 
 # Ignorar imágenes y archivos generados
-# frontend/public/assets/img/
+  frontend/public/assets/img/
 # frontend/src/assets/img/
 
