@@ -7,16 +7,11 @@
         Bienvenido, {{ userData.name }}. Aquí puedes administrar todo el sistema.
       </p>
       <div class="cards">
-        <!-- Se recorre el arreglo modificado que incluye imágenes y botones -->
-        <DashboardCard 
-          v-for="card in updatedSuperAdminCards"
+        <DashboardCard
+          v-for="card in superAdminCards"
           :key="card.title"
           :title="card.title"
           :value="card.value"
-          :image="card.image"
-          :buttonText="card.buttonText"
-          :buttonIcon="card.buttonIcon"
-          @navigate="card.navigate"
         />
       </div>
     </template>
@@ -41,8 +36,9 @@
         Bienvenido, {{ userData.name }}. Aquí tienes tu información personalizada.
       </p>
       <div class="cards">
-        <!-- Tarjetas para usuario: se muestran sin personalización especial -->
+        <!-- Aquí se muestra la cantidad de servicios activos (simulada o real) -->
         <DashboardCard title="Servicios Activos" :value="userServicesCount || 0" />
+        <!-- Se utiliza la propiedad computada para contar dinámicamente las solicitudes pendientes -->
         <DashboardCard title="Solicitudes Pendientes" :value="userPendingCountComputed" />
       </div>
     </template>
@@ -55,7 +51,7 @@
       </p>
     </template>
 
-    <!-- Sección de gráficos (para Admin/SuperAdmin) -->
+    <!-- Sección de gráficos de los datos existentes (para Admin/SuperAdmin) -->
     <div
       class="stats-container"
       v-if="(isSuperAdmin || isAdmin) && requestsChartData.labels.length"
@@ -64,7 +60,7 @@
       <DashboardChart title="Servicios Activos" :chartData="servicesChartData" />
     </div>
 
-    <!-- Gráfico de evolución total de usuarios (para Admin/SuperAdmin) -->
+    <!-- Sección de gráfico para la evolución del total de usuarios (para Admin/SuperAdmin) -->
     <div
       class="stats-container"
       v-if="(isSuperAdmin || isAdmin) && totalUsersChartData.labels.length"
@@ -97,15 +93,26 @@ export default {
         systemLogs: 0,
       },
       userServicesCount: 0,
+      // Eliminamos el valor estático de userPendingCount; usaremos la propiedad computada.
       errorMessage: "",
-      // Datos para las gráficas
-      requestsChartData: { labels: [], datasets: [] },
-      servicesChartData: { labels: [], datasets: [] },
-      totalUsersChartData: { labels: [], datasets: [] },
+      // Datos para gráficas:
+      requestsChartData: {
+        labels: [],
+        datasets: [],
+      },
+      servicesChartData: {
+        labels: [],
+        datasets: [],
+      },
+      totalUsersChartData: {
+        labels: [],
+        datasets: [],
+      },
     };
   },
   computed: {
     userData() {
+      // Obtiene los datos del usuario desde Vuex
       return this.$store.getters["auth/userData"] || {};
     },
     userRole() {
@@ -132,61 +139,15 @@ export default {
         { title: "Total de Usuarios", value: this.summary.totalUsers || 0 },
         { title: "Total de Solicitudes", value: this.summary.totalRequests || 0 },
         { title: "Servicios Activos", value: this.summary.activeServices || 0 },
-     // { title: "Solicitudes Pendientes", value: this.summary.pendingRequests || 0 },
-     // { title: "Registros del Sistema", value: this.summary.systemLogs || 0 },
+        { title: "Solicitudes Pendientes", value: this.summary.pendingRequests || 0 },
+        { title: "Registros del Sistema", value: this.summary.systemLogs || 0 },
       ];
     },
-    // Creamos un arreglo modificado para SuperAdmin que incluye imagen y navegación para cada tarjeta
-    updatedSuperAdminCards() {
-      return this.superAdminCards.map(card => {
-        if (card.title === "Total de Usuarios") {
-          return {
-            ...card,
-            // Asegúrate de tener la imagen en la ruta indicada; con require se resuelve la ruta correctamente.
-            image: require("@/assets/img/user-icon.png"),
-            buttonText: "Ver usuarios",
-            buttonIcon: "fas fa-users",
-            navigate: this.goToUsersPage,
-          };
-        } else if (card.title === "Total de Solicitudes") {
-          return {
-            ...card,
-            image: require("@/assets/img/document-icon.png"),
-            buttonText: "Ver solicitudes",
-            buttonIcon: "fas fa-file-alt",
-            navigate: this.goToRequestsPage,
-          };
-        } else if (card.title === "Servicios Activos") {
-          return {
-            ...card,
-            image: require("@/assets/img/activo-digital icon.png"),
-            buttonText: "Ver servicios",
-            buttonIcon: "fas fa-chart-line",
-            navigate: this.goToServicesPage,
-          };
-        } else if (card.title === "Solicitudes Pendientes") {
-          return {
-            ...card,
-            buttonText: "Ver pendientes",
-            buttonIcon: "fas fa-hourglass-half",
-            navigate: () => { /* Función de navegación para pendientes, si se requiere */ },
-          };
-        } else if (card.title === "Registros del Sistema") {
-          return {
-            ...card,
-            buttonText: "Ver registros",
-            buttonIcon: "fas fa-list",
-            navigate: () => { /* Función de navegación para registros, si se requiere */ },
-          };
-        }
-        return card;
-      });
-    },
-    // Mapeamos del módulo Vuex 'requests'
+    // Mapear el estado 'requests' del módulo Vuex 'requests'
     ...mapState("requests", {
       requests: (state) => state.requests,
     }),
-    // Propiedad computada para calcular solicitudes pendientes
+    // Propiedad computada para contar las solicitudes pendientes filtrando por status "pending"
     userPendingCountComputed() {
       if (!this.requests) return 0;
       return this.requests.filter(req => req.status === "pending").length;
@@ -196,7 +157,7 @@ export default {
     this.fetchSummary();
     this.fetchUserStats();
     this.fetchActiveServices();
-    // Despachar acción para obtener solicitudes reales del usuario
+    // Despacha la acción para obtener la información real de solicitudes del usuario
     this.$store.dispatch("requests/fetchRequests");
   },
   methods: {
@@ -205,7 +166,7 @@ export default {
         const response = await axios.get("/admin/summary");
         this.summary = response.data;
 
-        // Actualizamos datos para los gráficos (simulación y algunos valores fijos)
+        // Actualizar datos del gráfico de solicitudes
         this.requestsChartData = {
           labels: [
             "Enero", "Febrero", "Marzo", "Abril", "Mayo",
@@ -226,6 +187,7 @@ export default {
           ],
         };
 
+        // Actualizar datos del gráfico de servicios
         this.servicesChartData = {
           labels: [
             "Enero", "Febrero", "Marzo", "Abril", "Mayo",
@@ -246,6 +208,7 @@ export default {
           ],
         };
 
+        // Datos simulados para gráfico de evolución de usuarios (reemplaza según tu API)
         this.totalUsersChartData = {
           labels: [
             "Enero", "Febrero", "Marzo", "Abril", "Mayo",
@@ -268,36 +231,28 @@ export default {
     },
     async fetchUserStats() {
       try {
-        // Lógica para obtener estadísticas adicionales del usuario (aquí se puede agregar si es necesario)
+        // Para los servicios activos, se simula un valor o lo obtienes desde otra API
+        // this.userServicesCount = 3;
+        // Ya no se asigna userPendingCount de forma estática, pues se calcula con la propiedad computada.
       } catch (error) {
         console.error("Error al cargar datos del usuario", error);
       }
     },
     async fetchActiveServices() {
-      try {
-        const response = await axios.get("/services/active", {
-          headers: {
-            Authorization: `Bearer ${this.$store.getters["auth/token"]}`,
-          },
-        });
-        this.userServicesCount = response.data.data.length;
-        console.log("Servicios activos obtenidos:", response.data.data);
-      } catch (error) {
-        console.error("Error al obtener servicios activos:", error);
-        this.errorMessage =
-          error.response?.data?.message || "Error al cargar servicios activos.";
-      }
-    },
-    goToUsersPage() {
-    // Emite el evento "section-change" con el valor "usersManagement"
-    this.$emit("section-change", "usersManagement");
-    },
-    // Si tienes otros métodos de navegación (requests, services), puedes también adaptarlos
-    goToRequestsPage() {
-    this.$emit("section-change", "manageRequests");
-    },
-    goToServicesPage() {
-    this.$emit("section-change", "manageServices");
+    try {
+      const response = await axios.get("/services/active", {
+        headers: {
+          Authorization: `Bearer ${this.$store.getters["auth/token"]}`,
+        },
+      });
+      // Se actualiza la propiedad 'userServicesCount' con la cantidad de servicios activos
+      this.userServicesCount = response.data.data.length;
+      console.log("Servicios activos obtenidos:", response.data.data);
+    } catch (error) {
+      console.error("Error al obtener servicios activos:", error);
+      this.errorMessage =
+        error.response?.data?.message || "Error al cargar servicios activos.";
+    }
     },
   },
 };

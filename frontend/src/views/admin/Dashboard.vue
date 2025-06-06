@@ -5,7 +5,7 @@
     <div class="content-wrapper">
       <div class="container-fluid mt-4">
         <!-- Sección Overview -->
-        <DashboardHome v-if="activeSection === 'overview'" />
+        <DashboardHome v-if="activeSection === 'overview'" @section-change="setActiveSection" />
 
         <!-- Sección de Gestión de Servicios -->
         <template v-else-if="activeSection === 'manageServices'">

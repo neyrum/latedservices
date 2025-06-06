@@ -1,4 +1,5 @@
 import api from "../plugins/axios";
+import router from "@/router"; // Importamos la instancia del router
 
 export default {
   namespaced: true, // Habilitamos el espacio de nombres para este módulo
@@ -7,12 +8,12 @@ export default {
     userData: null, // Información del usuario autenticado
   },
   mutations: {
-    // ✅ Cambié el nombre de esta mutación de "setAuthenticated" a "SET_AUTHENTICATED" para seguir convenciones de Vuex
+    // Cambiamos el nombre de esta mutación a mayúsculas para seguir convenciones de Vuex
     SET_AUTHENTICATED(state, status) {
       state.isAuthenticated = status;
     },
     // Guarda los datos del usuario en el estado
-     SET_USER_DATA(state, data) {
+    SET_USER_DATA(state, data) {
       state.userData = data;
     },
   },
@@ -28,7 +29,9 @@ export default {
         await dispatch("fetchUserData");
       } catch (error) {
         console.error("Error al iniciar sesión:", error);
-        throw new Error(error.response?.data?.message || "Error desconocido al iniciar sesión.");
+        throw new Error(
+          error.response?.data?.message || "Error desconocido al iniciar sesión."
+        );
       }
     },
 
@@ -48,14 +51,14 @@ export default {
       }
     },
 
-    // ✅ Aquí agregué `window.location.reload();` para forzar la actualización de la navbar al cerrar sesión
     logout({ commit }) {
       localStorage.removeItem("token");
       commit("SET_AUTHENTICATED", false);
       commit("SET_USER_DATA", null);
 
-       this.$router.push("/login"); // ✅ Redirigir sin recargar la página
-     },
+      // Se utiliza la instancia importada de router para navegar a "/login"
+      router.push("/login");
+    },
 
     async validateToken({ dispatch, commit }) {
       const token = localStorage.getItem("token");
@@ -64,7 +67,7 @@ export default {
         commit("SET_USER_DATA", null);
         return;
       }
-    
+
       try {
         await dispatch("fetchUserData");
         commit("SET_AUTHENTICATED", true);
@@ -79,6 +82,6 @@ export default {
   getters: {
     isAuthenticated: (state) => state.isAuthenticated,
     userData: (state) => state.userData,
-    userRole: (state) => state.userData ? state.userData.role : undefined,
+    userRole: (state) => (state.userData ? state.userData.role : undefined),
   },
 };
