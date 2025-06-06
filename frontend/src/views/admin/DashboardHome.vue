@@ -131,8 +131,8 @@ export default {
       return [
         { title: "Total de Usuarios", value: this.summary.totalUsers || 0 },
         { title: "Total de Solicitudes", value: this.summary.totalRequests || 0 },
+        { title: "Solicitudes Pendientes", value: this.summary.pendingRequests || 0 },
         { title: "Servicios Activos", value: this.summary.activeServices || 0 },
-     // { title: "Solicitudes Pendientes", value: this.summary.pendingRequests || 0 },
      // { title: "Registros del Sistema", value: this.summary.systemLogs || 0 },
       ];
     },
@@ -167,6 +167,7 @@ export default {
         } else if (card.title === "Solicitudes Pendientes") {
           return {
             ...card,
+            image: require("@/assets/img/solicitud-pendiente icon.png"),
             buttonText: "Ver pendientes",
             buttonIcon: "fas fa-hourglass-half",
             navigate: () => { /* Función de navegación para pendientes, si se requiere */ },
