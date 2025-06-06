@@ -1,6 +1,6 @@
 <template>
   <div class="admin-requests">
-    <h3 class="dashboard-title">Solicitudes Pendientes</h3>
+    <h3 class="dashboard-title">{{ dynamicHeader }}</h3>
 
     <!-- Botones de exportación -->
     <div class="export-buttons">
@@ -205,6 +205,31 @@ export default {
     },
     totalPages() {
       return Math.ceil(this.filteredRequests.length / this.pageSize);
+    },
+    dynamicHeader() {
+    // Si no hay filtro (o si está vacío), se asume "Pendientes" por defecto.
+    if (!this.filterStatus || this.filterStatus === "") {
+      return "Todas las Solicitudes";
+    }
+    // Según el valor del filtro, retorna un título correspondiente.
+    switch (this.filterStatus.toLowerCase()) {
+      case "Todas los Estados":
+        return "Todas las Solicitudes";
+      case "pendiente":
+        return "Solicitudes Pendientes";
+      case "aprobado":
+        return "Solicitudes Aprobadas";
+      case "rechazado":
+        return "Solicitudes Rechazadas";
+      case "en_progreso":
+        return "Solicitudes en Progreso";
+      case "completado":
+        return "Solicitudes Completadas";
+      case "cancelado":
+        return "Solicitudes Canceladas";
+      default:
+        return "Todas las Solicitudes";
+      }
     }
   },
   methods: {
