@@ -112,9 +112,13 @@
 
     <!-- Paginación -->
     <div v-if="totalPages > 1" class="pagination">
-      <button @click="prevPage" :disabled="currentPage === 1">Anterior</button>
-      <span>Página {{ currentPage }} de {{ totalPages }}</span>
-      <button @click="nextPage" :disabled="currentPage === totalPages">Siguiente</button>
+      <button @click="prevPage" :disabled="currentPage === 1" class="pagination-btn">
+        <i class="fas fa-arrow-left"></i> Anterior 
+      </button>  
+      <span class="page-indicator">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-btn">
+      Siguiente <i class="fas fa-arrow-right"></i>
+      </button>
     </div>
 
     <!-- Modal para enviar notificación -->
@@ -173,7 +177,17 @@ export default {
   },
   computed: {
     filteredRequests() {
-      let result = this.requests;
+      let result = [...this.requests];
+
+      // FILTRAR POR RANGO DE FECHAS (Si el usuario selecciona fechas válidas)
+      if (this.startDate && this.endDate) {
+        const start = new Date(this.startDate);
+        const end = new Date(this.endDate);
+        result = result.filter(r => {
+        const requestDate = new Date(r.preferredDate);
+        return requestDate >= start && requestDate <= end;
+      });
+    }
       
       // Filtrado por búsqueda
       if (this.searchQuery) {
@@ -562,11 +576,45 @@ export default {
   font-size: 14px;
 }
 
-/* Paginación */
 .pagination {
-  margin-top: 15px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
 }
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #345996;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s;
+  box-shadow: 0px 4px 6px rgba(0, 123, 255, 0.3);
+}
+
+.pagination-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.pagination-btn:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.page-indicator {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
 </style>
