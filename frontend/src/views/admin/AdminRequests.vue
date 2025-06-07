@@ -21,7 +21,7 @@
         placeholder="Buscar por ID, cliente o servicio">
       
       <!-- Select para filtrar por estado -->
-      <select v-model="filterStatus">
+      <select v-model="filterStatus" @change="updateFilters">
         <option value="">Todos los Estados</option>
         <option value="pendiente">Pendiente</option>
         <option value="aprobado">Aprobado</option>
@@ -30,6 +30,9 @@
         <option value="completado">Completado</option>
         <option value="cancelado">Cancelado</option>
       </select>
+
+      <input type="date" v-model="startDate" @change="updateFilters">
+      <input type="date" v-model="endDate" @change="updateFilters">
       
       <!-- Select para elegir la clave de ordenamiento -->
       <select v-model="sortKey">
@@ -213,8 +216,6 @@ export default {
     }
     // Según el valor del filtro, retorna un título correspondiente.
     switch (this.filterStatus.toLowerCase()) {
-      case "Todas los Estados":
-        return "Todas las Solicitudes";
       case "pendiente":
         return "Solicitudes Pendientes";
       case "aprobado":
@@ -233,6 +234,9 @@ export default {
     }
   },
   methods: {
+    updateFilters() {
+    this.currentPage = 1; // Reinicia la paginación al aplicar un filtro
+  },
     async fetchRequests() {
       this.isLoading = true;
       try {
